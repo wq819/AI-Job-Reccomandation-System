@@ -1,5 +1,5 @@
 # ============================================================
-#   AI-Based Job Recommendation System  ·  ULTIMATE EDITION
+#   AI-Based Job Recommendation System  ·
 #   Prepared by  : Waqaas Hussain
 #   Subject      : Programming for AI
 #   Framework    : Streamlit + Scikit-learn + Plotly
@@ -1140,7 +1140,9 @@ elif "How" in page:
    st.markdown("""
 <b style="color:#4CAF50;">Result:</b> 0 -> 1 (higher = better match)
 """, unsafe_allow_html=True)
-    Measures angle between vectors in high-dimensional TF-IDF space — independent of document length.
+    st.markdown("""
+Measures angle between vectors in high-dimensional TF-IDF space &mdash; independent of document length.
+""", unsafe_allow_html=True)
   </div>
 </div>""", unsafe_allow_html=True)
 
