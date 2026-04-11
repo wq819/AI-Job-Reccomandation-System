@@ -1184,4 +1184,8 @@ Measures angle between vectors in high-dimensional TF-IDF space &mdash; independ
 """, unsafe_allow_html=True)
     <b>Algorithm:</b> TF-IDF Vectorization + Cosine Similarity Content-Based Filtering
   </div>
-</div>""", unsafe_allow_html=True)
+st.markdown("""
+<div class="card">
+    Content here
+</div>
+""", unsafe_allow_html=True)
