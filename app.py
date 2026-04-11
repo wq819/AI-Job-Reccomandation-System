@@ -922,7 +922,7 @@ st.markdown("""
 <div class="gap-box">
   {IC.alert(AMBER,18)}
   <div>
-    <div class="gap-title">Skill Gap — Recommended to Learn:</div>
+   <div class="gap-title">Skill Gap - Recommended to Learn:</div>
     <div class="gap-skills">{', '.join(missing)}</div>
   </div>
 </div>""", unsafe_allow_html=True)
