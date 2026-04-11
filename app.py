@@ -912,7 +912,7 @@ if "Home" in page:
 """, unsafe_allow_html=True)
 
                 if missing:
-                    st.markdown(f"""
+                    st.markdown("""
 <div class="gap-box">
   {IC.alert(AMBER,18)}
   <div>
