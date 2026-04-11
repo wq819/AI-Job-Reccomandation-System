@@ -1128,7 +1128,12 @@ elif "How" in page:
     st.markdown(f"""
 <div class="how-card" style="margin-top:0.5rem;">
   <div style="font-size:0.85rem;color:{MUTED};line-height:1.8;">
-    <b style="color:{TEXT};">A</b> = TF-IDF vector of user's entered skills &nbsp;·&nbsp;
+  st.markdown("""
+<div class="card">
+<b style="color:#4CAF50;">A</b> = TF-IDF vector of user entered skills &nbsp;·&nbsp;
+<b style="color:#4CAF50;">B</b> = Job required skills vector
+</div>
+""", unsafe_allow_html=True)
     <b style="color:{TEXT};">B</b> = TF-IDF vector of a job description &nbsp;·&nbsp;
     <b style="color:{TEXT};">Result:</b> 0 → 1 &nbsp;(higher = better match) &nbsp;·&nbsp;
     Measures angle between vectors in high-dimensional TF-IDF space — independent of document length.
