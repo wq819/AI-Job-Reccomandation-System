@@ -1171,7 +1171,9 @@ Measures angle between vectors in high-dimensional TF-IDF space &mdash; independ
 <div class="info-card" style="margin-top:2rem;">
   <div class="info-label">{IC.star(TEAL,14)} Project Information</div>
   <div class="info-value">
-    <b>Prepared by:</b> Waqaas Hussain &nbsp;·&nbsp;
+    st.markdown("""
+<b>Prepared by:</b> Waqaas Hussain - 
+""", unsafe_allow_html=True)
     <b>Subject:</b> Programming for AI &nbsp;·&nbsp;
     <b>Framework:</b> Streamlit + Scikit-learn + Plotly &nbsp;·&nbsp;
     <b>Algorithm:</b> TF-IDF Vectorization + Cosine Similarity Content-Based Filtering
