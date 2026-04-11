@@ -1137,7 +1137,9 @@ elif "How" in page:
     st.markdown("""
 <b style="color:#4CAF50;">B</b> = TF-IDF vector of a job description - 
 """, unsafe_allow_html=True)
-    <b style="color:{TEXT};">Result:</b> 0 → 1 &nbsp;(higher = better match) &nbsp;·&nbsp;
+   st.markdown("""
+<b style="color:#4CAF50;">Result:</b> 0 -> 1 (higher = better match)
+""", unsafe_allow_html=True)
     Measures angle between vectors in high-dimensional TF-IDF space — independent of document length.
   </div>
 </div>""", unsafe_allow_html=True)
