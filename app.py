@@ -1174,8 +1174,14 @@ Measures angle between vectors in high-dimensional TF-IDF space &mdash; independ
     st.markdown("""
 <b>Prepared by:</b> Waqaas Hussain - 
 """, unsafe_allow_html=True)
-    <b>Subject:</b> Programming for AI &nbsp;·&nbsp;
-    <b>Framework:</b> Streamlit + Scikit-learn + Plotly &nbsp;·&nbsp;
+    st.markdown("""
+<b>Subject:</b> Programming for AI -
+""", unsafe_allow_html=True)
+        st.markdown("""
+<div class="card">
+<b>Framework:</b> Streamlit + Scikit-learn + Plotly
+</div>
+""", unsafe_allow_html=True)
     <b>Algorithm:</b> TF-IDF Vectorization + Cosine Similarity Content-Based Filtering
   </div>
 </div>""", unsafe_allow_html=True)
