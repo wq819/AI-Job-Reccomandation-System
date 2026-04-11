@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 # ── Page Config ──────────────────────────────────────────────
 st.set_page_config(
     page_title="AI Job Recommendation System",
-    page_icon="💼",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -177,23 +177,23 @@ vec, mat = build_model(df['desc'].astype(str))
 # Header
 st.markdown("""
 <div class="main-header">
-  <h1>💼 AI-Based Job Recommendation System</h1>
+  <h1> AI-Based Job Recommendation System</h1>
   <p>TF-IDF Vectorization · Cosine Similarity · Content-Based Filtering &nbsp;|&nbsp; Prepared by Waqaas Hussain</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 👤 Your Profile")
+    st.markdown("## Your Profile")
     st.markdown("---")
 
     user_skills = st.text_area("💡 Skills (comma-separated)",
         placeholder="e.g. Python, Machine Learning, SQL, Django", height=110)
 
-    education = st.selectbox("🎓 Education",
+    education = st.selectbox(" Education",
         ["Intermediate","Diploma","Bachelor's","Master's","PhD"])
 
-    experience = st.slider("💼 Years of Experience", 0, 20, 1)
+    experience = st.slider(" Years of Experience", 0, 20, 1)
 
     job_type = st.selectbox("🕐 Job Type",
         ["Any","Full-time","Part-time","Remote","Freelance","Internship"])
@@ -206,20 +206,20 @@ with st.sidebar:
     find_btn = st.button("🔎 Find My Jobs", use_container_width=True, type="primary")
     st.markdown("---")
 
-    page = st.radio("📂 Pages",
-        ["🏠 Home","📊 Analytics","ℹ️ How It Works"],
+    page = st.radio(" Pages",
+        [" Home"," Analytics"," How It Works"],
         label_visibility="collapsed")
 
 # ══════════════════════════════════════════════════════════════
 #  HOME
 # ══════════════════════════════════════════════════════════════
-if "🏠 Home" in page:
+if " Home" in page:
 
     if find_btn or 'results' in st.session_state:
 
         if find_btn:
             if not user_skills.strip():
-                st.warning("⚠️ Please enter at least one skill.")
+                st.warning(" Please enter at least one skill.")
                 st.stop()
 
             jt  = "" if job_type == "Any" else job_type
@@ -271,12 +271,12 @@ if "🏠 Home" in page:
                 st.markdown(f"""
 <div class="job-card">
   <div class="job-title">{j['title']}</div>
-  <div class="company-row">🏢 {j['company']} &nbsp;·&nbsp; 📍 {j['location']}</div>
+  <div class="company-row"> {j['company']} &nbsp;·&nbsp; 📍 {j['location']}</div>
   <div style="margin:6px 0;">
-    <span class="badge bg">✅ {pct}% Match</span>
+    <span class="badge bg"> {pct}% Match</span>
     <span class="badge bb">{j['type']}</span>
     <span class="badge bp">{j['category']}</span>
-    <span class="badge bo">🎓 {j['edu']}+</span>
+    <span class="badge bo"> {j['edu']}+</span>
     <span class="badge br">⏱ {j['exp_min']}+ yrs</span>
   </div>
   <div class="match-bar-bg">
@@ -284,38 +284,38 @@ if "🏠 Home" in page:
   </div>
   <div style="font-size:0.75rem;color:#6b7280;margin-bottom:0.75rem;">{pct}% alignment with your skills</div>
 
-  <b style="font-size:0.8rem;">💰 Salary:</b>
+  <b style="font-size:0.8rem;"> Salary:</b>
   <span style="color:#0f4c75;font-weight:600;"> {j['salary']}</span><br><br>
 
   <b style="font-size:0.8rem;">🛠 Skills Analysis:</b><br>
   {m_pills if m_pills else ''}
   {x_pills if x_pills else ''}
-  {'<div style="font-size:0.7rem;color:#6b7280;margin-top:4px;">🟢 Matched &nbsp;|&nbsp; 🔴 Missing</div>' if (matched or missing) else ''}
+  {'<div style="font-size:0.7rem;color:#6b7280;margin-top:4px;"> Matched &nbsp;|&nbsp;  Missing</div>' if (matched or missing) else ''}
 </div>
 """, unsafe_allow_html=True)
 
                 if missing:
                     st.markdown(f"""
 <div class="gap-box">
-  <div class="gap-t">📌 Skill Gap — You should learn:</div>
+  <div class="gap-t"> Skill Gap — You should learn:</div>
   <div class="gap-s">{', '.join(missing)}</div>
 </div>""", unsafe_allow_html=True)
 
                 if st.button(f"🚀 Apply Now", key=f"apply_{j['id']}"):
-                    st.success(f"✅ Applied for **{j['title']}** at **{j['company']}**!")
+                    st.success(f"Applied for **{j['title']}** at **{j['company']}**!")
 
         st.markdown("---")
         csv = show[['title','company','location','type','category','salary','pct']]\
               .rename(columns={'title':'Title','company':'Company','location':'Location',
                                'type':'Type','category':'Category','salary':'Salary','pct':'Match%'})\
               .to_csv(index=False).encode('utf-8')
-        st.download_button("⬇️ Download Results as CSV", csv, "job_recommendations.csv",
+        st.download_button(" Download Results as CSV", csv, "job_recommendations.csv",
                            "text/csv", use_container_width=True)
 
     else:
         st.markdown("""
 <div class="welcome">
-  <div class="icon">🎯</div>
+  <div class="icon"></div>
   <h3 style="color:#0f4c75;">Welcome, Waqaas!</h3>
   <p style="color:#6b7280;max-width:520px;margin:0 auto;">
     Enter your skills and preferences in the <b>sidebar</b>, then click
@@ -326,7 +326,7 @@ if "🏠 Home" in page:
         c1,c2,c3 = st.columns(3)
         c1.info("**Step 1** — Type your skills\ne.g. Python, SQL, React")
         c2.info("**Step 2** — Set your education,\nexperience & preferences")
-        c3.info("**Step 3** — Click\n**'Find My Jobs'** ✅")
+        c3.info("**Step 3** — Click\n**'Find My Jobs'** ")
 
         st.markdown('<div class="sec">📋 Job Categories in System</div>', unsafe_allow_html=True)
         cats = df['category'].value_counts()
@@ -338,8 +338,8 @@ if "🏠 Home" in page:
 # ══════════════════════════════════════════════════════════════
 #  ANALYTICS
 # ══════════════════════════════════════════════════════════════
-elif "📊 Analytics" in page:
-    st.markdown('<div class="sec">📊 Job Market Analytics</div>', unsafe_allow_html=True)
+elif " Analytics" in page:
+    st.markdown('<div class="sec"> Job Market Analytics</div>', unsafe_allow_html=True)
 
     c1,c2,c3,c4 = st.columns(4)
     for col,num,lbl in [
@@ -354,7 +354,7 @@ elif "📊 Analytics" in page:
     r1c1, r1c2 = st.columns(2)
 
     with r1c1:
-        st.markdown("**📂 Jobs by Category**")
+        st.markdown("** Jobs by Category**")
         cats = df['category'].value_counts()
         fig,ax = plt.subplots(figsize=(6,4))
         colors = ['#0d7c66','#1b6ca8','#0f4c75','#7c3aed','#dc2626','#ea580c','#16a34a','#0891b2','#be185d']
@@ -377,7 +377,7 @@ elif "📊 Analytics" in page:
     r2c1, r2c2 = st.columns(2)
 
     with r2c1:
-        st.markdown("**💼 Experience Required**")
+        st.markdown("**Experience Required**")
         bins = pd.cut(df['exp_min'],bins=[-1,0,1,2,3,5,10,20],
                       labels=['Fresher','<1yr','1-2yr','2-3yr','3-5yr','5-10yr','10+yr'])
         bc = bins.value_counts().sort_index()
@@ -400,7 +400,7 @@ elif "📊 Analytics" in page:
         plt.tight_layout(); st.pyplot(fig4); plt.close()
 
     st.markdown("---")
-    st.markdown('<div class="sec">📋 Full Job Dataset</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec"> Full Job Dataset</div>', unsafe_allow_html=True)
     disp = df[['title','company','location','type','category','salary','exp_min','edu']].copy()
     disp.columns = ['Job Title','Company','Location','Type','Category','Salary','Min Exp','Education']
     st.dataframe(disp, use_container_width=True, height=420)
@@ -409,23 +409,23 @@ elif "📊 Analytics" in page:
 # ══════════════════════════════════════════════════════════════
 #  HOW IT WORKS
 # ══════════════════════════════════════════════════════════════
-elif "ℹ️ How It Works" in page:
-    st.markdown('<div class="sec">ℹ️ How the AI System Works</div>', unsafe_allow_html=True)
+elif " How It Works" in page:
+    st.markdown('<div class="sec"> How the AI System Works</div>', unsafe_allow_html=True)
 
     steps = [
-        ("1️⃣ Data Collection","30 real-world job listings with titles, descriptions, required skills, salary, location and experience requirements."),
-        ("2️⃣ Text Preprocessing","Job descriptions are cleaned: lowercased, special characters removed, stop words filtered using TF-IDF's built-in English stop word list."),
-        ("3️⃣ TF-IDF Vectorization","TfidfVectorizer (Scikit-learn) converts job descriptions and your skills into numerical vectors. TF-IDF gives higher weight to rare, important keywords."),
-        ("4️⃣ Cosine Similarity","Similarity between your skill vector and each job vector is computed using cosine similarity. Score 0–1 (1 = perfect match)."),
-        ("5️⃣ Score Boosting","Boosts applied: experience match (+0.08), job type preference (+0.06), education alignment (+0.05). Scores normalized to 60–99%."),
-        ("6️⃣ Results & Gap Analysis","Jobs ranked by match percentage. Skill overlap shown in green (matched) and red (missing = skill gap to fill)."),
+        (" Data Collection","30 real-world job listings with titles, descriptions, required skills, salary, location and experience requirements."),
+        (" Text Preprocessing","Job descriptions are cleaned: lowercased, special characters removed, stop words filtered using TF-IDF's built-in English stop word list."),
+        (" TF-IDF Vectorization","TfidfVectorizer (Scikit-learn) converts job descriptions and your skills into numerical vectors. TF-IDF gives higher weight to rare, important keywords."),
+        (" Cosine Similarity","Similarity between your skill vector and each job vector is computed using cosine similarity. Score 0–1 (1 = perfect match)."),
+        (" Score Boosting","Boosts applied: experience match (+0.08), job type preference (+0.06), education alignment (+0.05). Scores normalized to 60–99%."),
+        (" Results & Gap Analysis","Jobs ranked by match percentage. Skill overlap shown in green (matched) and red (missing = skill gap to fill)."),
     ]
     for t,d in steps:
         with st.expander(t, expanded=True):
             st.write(d)
 
     st.markdown("---")
-    st.markdown("### 📐 Cosine Similarity Formula")
+    st.markdown("###  Cosine Similarity Formula")
     st.latex(r"\text{Cosine Similarity}(A, B) = \frac{A \cdot B}{\|A\| \times \|B\|}")
     st.markdown("- **A** = TF-IDF vector of your skills\n- **B** = TF-IDF vector of job description\n- Result: **0** (no match) → **1** (perfect match)")
 
