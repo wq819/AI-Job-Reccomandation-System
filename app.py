@@ -187,7 +187,7 @@ with st.sidebar:
     st.markdown("## Your Profile")
     st.markdown("---")
 
-    user_skills = st.text_area("💡 Skills (comma-separated)",
+    user_skills = st.text_area("Skills (comma-separated)",
         placeholder="e.g. Python, Machine Learning, SQL, Django", height=110)
 
     education = st.selectbox(" Education",
@@ -198,12 +198,12 @@ with st.sidebar:
     job_type = st.selectbox("🕐 Job Type",
         ["Any","Full-time","Part-time","Remote","Freelance","Internship"])
 
-    location_pref = st.text_input("📍 Location", placeholder="e.g. Karachi, Remote, Dubai")
+    location_pref = st.text_input(" Location", placeholder="e.g. Karachi, Remote, Dubai")
 
-    top_n = st.slider("📋 Results to Show", 3, 15, 8)
+    top_n = st.slider("Results to Show", 3, 15, 8)
 
     st.markdown("---")
-    find_btn = st.button("🔎 Find My Jobs", use_container_width=True, type="primary")
+    find_btn = st.button(" Find My Jobs", use_container_width=True, type="primary")
     st.markdown("---")
 
     page = st.radio(" Pages",
