@@ -909,6 +909,12 @@ if "Home" in page:
   </div>
   {'<div style="font-size:0.68rem;color:'+MUTED+';margin-top:7px;display:flex;gap:12px;"><span style=\'color:'+TEAL+';font-weight:600;\'>● Matched</span><span style=\'color:'+RED+';font-weight:600;\'>● Missing</span></div>' if (matched or missing) else ''}
 </div>
+st.markdown("""
+<style>
+.box {
+    width: 100%;
+}
+</style>
 """, unsafe_allow_html=True)
 
                 if missing:
