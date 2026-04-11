@@ -872,6 +872,10 @@ if "Home" in page:
 
             with st.expander(f"  {j['title']}  ·  {j['company']}  —  {pct}% match"):
                 st.markdown(f"""
+<div class="card">
+    Your content here
+</div>
+""", unsafe_allow_html=True)
 <div class="job-card">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
     <div style="flex:1;">
