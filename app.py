@@ -183,4 +183,31 @@ elif selection == "🔍 Smart Search":
                         </div>
                         <p style="margin-top:15px; color:#475569; font-size:0.9rem;">{row['desc']}</p>
                         <div style="margin-top:10px;">
-                            <code style="background:#f1f5f9; color:#4338ca; padding:4px 8px; border-radius:5px; font-size:0.8rem
+                            <code style="background:#f1f5f9; color:#4338ca; padding:4px 8px; border-radius:5px; font-size:0.8rem;">{row['skills']}</code>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.info("Awaiting input. Please enter your skills in the left panel.")
+
+# --- SECTION: ANALYTICS ---
+elif selection == "📊 Market Insights":
+    st.header("Talent Landscape Analytics")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.plotly_chart(px.pie(df, names='category', title='Job Domains', hole=0.4), use_container_width=True)
+    with c2:
+        st.plotly_chart(px.bar(df, x='company', y='base_salary', color='tier', title='Salary Benchmarks by Company'), use_container_width=True)
+
+# --- SECTION: DOCUMENTATION ---
+elif selection == "📄 Documentation":
+    st.header("Project Technicalities")
+    st.markdown("""
+    ### System Architecture
+    1. **Vectorization**: Uses TF-IDF (Term Frequency-Inverse Document Frequency) to weigh skill importance.
+    2. **Matching**: Cosine Similarity calculates the angular distance between candidate vectors and job vectors.
+    3. **Professional Layer**: Integrated salary estimators based on match accuracy and company tiering.
+    """)
+
+st.markdown("---")
+st.caption("© 2026 | Aror University Sukkur | Department of Artificial Intelligence")
