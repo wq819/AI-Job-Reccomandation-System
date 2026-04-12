@@ -167,12 +167,6 @@ if nav_choice == "🏠 Dashboard":
     col2.metric("Tech Hubs", "Sindh, Punjab, Federal")
     col3.metric("AI Core", "TF-IDF / Cosine")
     
-    st.markdown("---")
-    st.info("""
-    **Project Objective:** To demonstrate the application of Natural Language Processing (NLP) in personalizing 
-    the career search for university students. This system avoids simple keyword matching and uses 
-    vector-space similarity to rank job relevance.
-    """)
 
 # --- PAGE: SMART MATCHER ---
 elif nav_choice == "🔍 Smart Matcher":
