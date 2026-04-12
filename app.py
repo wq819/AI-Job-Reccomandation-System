@@ -611,7 +611,9 @@ elif "Recommendations" in page:
   {'<div style="font-size:.67rem;color:'+MUTED+';margin-top:7px;display:flex;gap:12px;"><span style=\'color:'+TEAL+';font-weight:700;\'>● Matched</span><span style=\'color:'+RED+';font-weight:700;\'>● Missing (skill gap)</span></div>' if (matched or missing) else ''}
 st.markdown("""
 <style>
-.card { padding: 10px; }
+.card {
+    padding: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
