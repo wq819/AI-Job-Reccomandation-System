@@ -100,7 +100,7 @@ with st.sidebar:
 # Header Section
 st.title("AI JOB RECCOMANDATION SYSTEM")
 st.subheader("BS Artificial Intelligence | Semester 4 ")
-st.write(f"**Developed By ** Waqaas Hussain & Hira Abdul Hafeez | **Aror University Sukkur**")
+st.write(f" Developed By  Waqaas Hussain & Hira Abdul Hafeez | Aror University Sukkur ")
 
 if find_jobs and u_skills:
     df = load_data()
@@ -125,7 +125,7 @@ if find_jobs and u_skills:
             </div>
             """, unsafe_allow_html=True)
 else:
-    st.info("👋 Welcome! Please enter your skills in the sidebar to see the recommendation system in action.")
+    st.info(" Welcome! Please enter your skills in the sidebar to see the recommendation system in action.")
 
 # Technical Logic Explanation (For the VIVA/Presentation)
 with st.expander("🔬 View Technical Logic (NLP Pipeline)"):
