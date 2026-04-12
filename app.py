@@ -524,124 +524,115 @@ if "Home" in page:
 # ══════════════════════════════════════════════════════════════
 #  PAGE 2 — RECOMMENDATIONS
 # ══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════
+#  PAGE 2 — RECOMMENDATIONS
+# ══════════════════════════════════════════════════════════════
 elif "Recommendations" in page:
 
-    if find_btn or 'results' in st.session_state:
-        if find_btn:
-            if not user_skills.strip():
-                st.warning("Please enter at least one skill to get recommendations.")
-                st.stop()
-            jt  = "" if job_type=="Any" else job_type
+    if find_btn:
+        if not user_skills.strip():
+            st.warning("Please enter at least one skill to get recommendations.")
+        else:
+            jt = "" if job_type == "Any" else job_type
             res = recommend(user_skills, experience, education, jt, vec, mat, df, top_n)
+            
+            # Location filter apply karna
             if loc_pref.strip():
                 res = res[
                     res['location'].str.lower().str.contains(loc_pref.lower(), na=False) |
                     res['location'].str.lower().str.contains('remote', na=False)
                 ]
+            
             st.session_state['results'] = res
-            st.session_state['skills']  = user_skills
+            st.session_state['skills'] = user_skills
 
-        res   = st.session_state.get('results', pd.DataFrame())
-        s_str = st.session_state.get('skills', '')
+    # Agar results session state mein hain to display karo
+    if 'results' in st.session_state:
+        res = st.session_state['results']
+        s_str = st.session_state['skills']
 
         if res.empty:
             st.warning("No matching jobs found — try broadening your filters.")
-            st.stop()
+        else:
+            # Stat cards
+            sk_cnt = len([s for s in s_str.split(',') if s.strip()])
+            c1, c2, c3, c4 = st.columns(4)
+            stats = [
+                (c1, I.briefcase(TEAL, 24), len(res), "Jobs Found"),
+                (c2, I.target(BLUE, 24), f"{int(res['pct'].mean())}%", "Avg Match Score"),
+                (c3, I.star(AMBER, 24), f"{int(res['pct'].max())}%", "Best Match"),
+                (c4, I.layers(PURPLE, 24), sk_cnt, "Skills Detected"),
+            ]
+            for col, ico, num, lbl in stats:
+                col.markdown(f'<div class="stat-card"><div class="s-ico">{ico}</div><div class="s-num">{num}</div><div class="s-lbl">{lbl}</div></div>', unsafe_allow_html=True)
 
-        # Stat cards
-        sk_cnt = len([s for s in s_str.split(',') if s.strip()])
-        c1,c2,c3,c4 = st.columns(4)
-        for col,ico,num,lbl in [
-            (c1, I.briefcase(TEAL,24),   len(res),                    "Jobs Found"),
-            (c2, I.target(BLUE,24),      f"{int(res['pct'].mean())}%","Avg Match Score"),
-            (c3, I.star(AMBER,24),       f"{int(res['pct'].max())}%", "Best Match"),
-            (c4, I.layers(PURPLE,24),    sk_cnt,                       "Skills Detected"),
-        ]:
-            col.markdown(f'<div class="stat-card"><div class="s-ico">{ico}</div><div class="s-num">{num}</div><div class="s-lbl">{lbl}</div></div>', unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+            # Filter Results
+            cats = ["All"] + sorted(res['category'].unique().tolist())
+            st.markdown(f'<div class="sh">{I.filter_ic(TEAL, 18)} Filter Results</div>', unsafe_allow_html=True)
+            sel = st.radio("Category Filter", cats, horizontal=True, key="cat_filter")
+            show = res if sel == "All" else res[res['category'] == sel]
 
-        # Filter
-        cats = ["All"] + sorted(res['category'].unique().tolist())
-        st.markdown(f'<div class="sh">{I.filter_ic(TEAL,18)} Filter Results</div>', unsafe_allow_html=True)
-        sel  = st.radio("cat", cats, horizontal=True, label_visibility="collapsed")
-        show = res if sel=="All" else res[res['category']==sel]
+            st.markdown(f'<p style="color:{MUTED};font-size:.79rem;margin:.5rem 0 1rem;">Showing <b style="color:{TEAL};">{len(show)}</b> job(s) · ranked by TF-IDF cosine similarity score</p>', unsafe_allow_html=True)
 
-        st.markdown(f'<p style="color:{MUTED};font-size:.79rem;margin:.5rem 0 1rem;">Showing <b style="color:{TEAL};">{len(show)}</b> job(s) · ranked by TF-IDF cosine similarity score</p>', unsafe_allow_html=True)
+            # Job cards loop
+            for idx, j in show.iterrows():
+                pct = j['pct']
+                rc, bg = match_style(pct)
+                matched, missing = split_skills(s_str, j['skills'])
+                mp = "".join([f'<span class="c-match">{I.check(TEAL, 10)} {s}</span>' for s in matched])
+                xp = "".join([f'<span class="c-miss">{I.xmark(RED, 10)} {s}</span>' for s in missing])
 
-        # Job cards
-        for _, j in show.iterrows():
-            pct = j['pct']
-            rc, bg = match_style(pct)
-            matched, missing = split_skills(s_str, j['skills'])
-            mp = "".join([f'<span class="c-match">{I.check(TEAL,10)} {s}</span>' for s in matched])
-            xp = "".join([f'<span class="c-miss">{I.xmark(RED,10)} {s}</span>'  for s in missing])
-
-            with st.expander(f"  {j['title']}  ·  {j['company']}  —  {pct}% match"):
-                st.markdown(f"""
-<div class="jcard">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;">
-    <div style="flex:1;">
-      <div class="j-title">{I.briefcase(rc,15)}&nbsp; {j['title']}</div>
-      <div class="j-meta">
-        <span class="j-mi">{I.building(MUTED,13)} {j['company']}</span>
-        <span class="j-mi">{I.location(MUTED,13)} {j['location']}</span>
-      </div>
-    </div>
-    <div class="mring" style="color:{rc};border-color:{rc};background:rgba(0,0,0,.18);">{pct}%</div>
-  </div>
-
-  <div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;">
-    <span class="badge bt">{I.target(TEAL,10)} {pct}% Match</span>
-    <span class="badge bb">{I.clock(BLUE,10)} {j['type']}</span>
-    <span class="badge bp">{I.layers(PURPLE,10)} {j['category']}</span>
-    <span class="badge ba">{I.graduation(AMBER,10)} {j['edu']}+</span>
-    <span class="badge br">{I.clock(RED,10)} {j['exp']}+ yrs</span>
-  </div>
-
-  <div class="bar-track"><div class="bar-fill" style="width:{pct}%;background:{bg};"></div></div>
-  <div style="font-size:.7rem;color:{MUTED};margin-bottom:11px;">{pct}% TF-IDF cosine similarity alignment</div>
-
-  <div class="sal-tag">{I.dollar(AMBER,14)} {j['salary']}</div>
-
-  <div style="font-size:.77rem;font-weight:700;color:{TEXT};margin:13px 0 6px;display:flex;align-items:center;gap:7px;">
-    {I.layers(TEAL,14)} Skill Analysis — Matched vs Missing
-  </div>
-  <div style="display:flex;flex-wrap:wrap;gap:2px;">{mp}{xp}</div>
-  {'<div style="font-size:.67rem;color:'+MUTED+';margin-top:7px;display:flex;gap:12px;"><span style=\'color:'+TEAL+';font-weight:700;\'>● Matched</span><span style=\'color:'+RED+';font-weight:700;\'>● Missing (skill gap)</span></div>' if (matched or missing) else ''}
-st.markdown(f"""
-<style>
-.card {{ padding: 10px; }}
-</style>
-""", unsafe_allow_html=True)
-
-                   if missing:
+                with st.expander(f" {j['title']} · {j['company']} — {pct}% match"):
                     st.markdown(f"""
-<div class="gap-box">{I.alert(AMBER,18)}
-  <div>
-    <div class="gap-title">Skill Gap — Recommended to Learn:</div>
-    <div class="gap-sk">{', '.join(missing)}</div>
-  </div>
-</div>""", unsafe_allow_html=True)
+                    <div class="jcard">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;">
+                            <div style="flex:1;">
+                                <div class="j-title">{I.briefcase(rc, 15)}&nbsp; {j['title']}</div>
+                                <div class="j-meta">
+                                    <span class="j-mi">{I.building(MUTED, 13)} {j['company']}</span>
+                                    <span class="j-mi">{I.location(MUTED, 13)} {j['location']}</span>
+                                </div>
+                            </div>
+                            <div class="mring" style="color:{rc};border-color:{rc};background:rgba(0,0,0,0.18);">{pct}%</div>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin:8px 0;">
+                            <span class="badge bt">{I.target(TEAL, 10)} Match</span>
+                            <span class="badge bb">{I.clock(BLUE, 10)} {j['type']}</span>
+                            <span class="badge bp">{I.layers(PURPLE, 10)} {j['category']}</span>
+                            <span class="badge ba">{I.graduation(AMBER, 10)} {j['edu']}+</span>
+                        </div>
+                        <div class="bar-track"><div class="bar-fill" style="width:{pct}%;background:{bg};"></div></div>
+                        <div class="sal-tag" style="margin-top:10px;">{I.dollar(AMBER, 14)} {j['salary']}</div>
+                        <div style="font-size:.77rem;font-weight:700;color:{TEXT};margin:13px 0 6px;">Skill Analysis:</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:2px;">{mp}{xp}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if missing:
+                        st.markdown(f"""
+                        <div class="gap-box">{I.alert(AMBER, 18)}
+                            <div>
+                                <div class="gap-title">Skill Gap — Recommended to Learn:</div>
+                                <div class="gap-sk">{', '.join(missing)}</div>
+                            </div>
+                        </div>""", unsafe_allow_html=True)
 
-                if st.button("Apply Now", key=f"a_{j['id']}"):
-                    st.success(f"Application submitted for **{j['title']}** at **{j['company']}**!")
+                    if st.button("Apply Now", key=f"apply_{j['id']}"):
+                        st.success(f"Application sent to {j['company']}!")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        csv = show[['title','company','location','type','category','salary','pct']]\
-              .rename(columns={'title':'Title','company':'Company','location':'Location',
-                               'type':'Type','category':'Category','salary':'Salary','pct':'Match%'})\
-              .to_csv(index=False).encode('utf-8')
-        st.download_button(f"{I.download('white',14)} Download Results as CSV",
-                           csv,"job_recommendations.csv","text/csv",use_container_width=True)
+            # CSV Download
+            csv = show.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Results", data=csv, file_name='jobs.csv', mime='text/csv')
 
     else:
         st.markdown(f"""
-<div class="wcard">
-  {I.search(TEAL,52)}
-  <div class="w-title">Ready to Find Your Match?</div>
-  <div class="w-sub">Fill in your skills and preferences in the <b>sidebar</b>, then click <b>Find My Jobs</b> to receive AI-powered recommendations ranked by cosine similarity.</div>
-</div>""", unsafe_allow_html=True)
+        <div class="wcard">
+            {I.search(TEAL, 52)}
+            <div class="w-title">Ready to Find Your Match?</div>
+            <div class="w-sub">Enter your skills in the sidebar and click 'Find My Jobs'.</div>
+        </div>""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════
