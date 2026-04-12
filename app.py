@@ -118,7 +118,7 @@ with st.sidebar:
 
 # --- HOME SECTION ---
 if nav == "🏠 Home":
-    st.title("JOB RECCOMANDATION SYSTEM ")
+    st.title("Connecting Talent with Pakistan's Tech Hubs")
     st.image("https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1200", caption="Developing the Digital Future of Pakistan")
     
     st.markdown("""
@@ -141,4 +141,43 @@ elif nav == "🔍 Smart Match":
         else:
             st.subheader("Top Job Matches in Pakistan")
             cols = st.columns(2)
-            for i, (idx, row) in enumerate(results
+            for i, (idx, row) in enumerate(results.iterrows()):
+                if row['match'] > 5:
+                    with cols[i % 2]:
+                        st.markdown(f"""
+                        <div class="job-card">
+                            <img src="{row['loc_pic']}" class="loc-img">
+                            <div class="card-content">
+                                <div style="display:flex; justify-content:space-between; align-items:start;">
+                                    <div style="display:flex; gap:12px;">
+                                        <img src="{row['logo']}" width="45" height="45">
+                                        <div>
+                                            <h3 style="margin:0; font-size:1.2rem;">{row['title']}</h3>
+                                            <p style="margin:0; color:#64748b; font-weight:600;">{row['company']}</p>
+                                        </div>
+                                    </div>
+                                    <span class="badge-pak">{int(row['match'])}% Match</span>
+                                </div>
+                                <div style="margin-top:10px; display:flex; gap:10px;">
+                                    <span class="badge-loc">📍 {row['location']}</span>
+                                    <span class="badge-loc">💰 {row['base_salary']}</span>
+                                </div>
+                                <p style="font-size:0.9rem; margin-top:15px; color:#475569;">{row['desc']}</p>
+                                <div style="margin-top:12px;">
+                                    <code style="font-size:0.8rem; background:#f8fafc; color:#065f46; padding:4px 8px; border-radius:4px;">{row['skills']}</code>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+# --- JOBS MAP SECTION ---
+elif nav == "📍 Jobs Map":
+    st.header("Tech Opportunity Heatmap (Pakistan)")
+    try:
+        fig = px.scatter_mapbox(df, lat="lat", lon="lon", hover_name="company", 
+                                hover_data=["title", "location"],
+                                color_discrete_sequence=["#064e3b"], zoom=4.5, height=600)
+        fig.update_layout(mapbox_style="carto-positron", margin={"r":0,"t":0,"l":0,"b":0})
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as e:
+        st.error(f"Map Error: {e}")
