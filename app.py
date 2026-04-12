@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 # ──────────────────────────────────────────────────────────────
 #  1. PAGE CONFIGURATION & UI STYLING
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="AI Job Matcher | Waqaas Hussain", layout="wide", page_icon="🎯")
+st.set_page_config(page_title="AI Job Reccomandation system | ", layout="wide", page_icon="🎯")
 
 st.markdown("""
 <style>
