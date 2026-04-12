@@ -869,7 +869,12 @@ if "Home" in page:
     Your content here
 </div>
 """, unsafe_allow_html=True)
-<div class="job-card">
+for job in jobs:
+    st.markdown(f"""
+    <div class="job-card">
+        <h3>{job}</h3>
+    </div>
+    """, unsafe_allow_html=True)
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
     <div style="flex:1;">
       <div class="job-title-txt">{IC.briefcase(ring_color,15)} &nbsp;{j['title']}</div>
