@@ -1,8 +1,7 @@
 # ============================================================
-#   AI-BASED JOB RECOMMENDATION SYSTEM
+#   AI-BASED JOB RECOMMENDATION SYSTEM (Pro Version)
 #   Author      : Waqaas Hussain
 #   Institution : Aror University Sukkur
-#   Subject     : Programming for AI
 #   Algorithm   : TF-IDF Vectorization + Cosine Similarity
 # ============================================================
 
@@ -18,197 +17,162 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ──────────────────────────────────────────────────────────────
-#  1. PAGE CONFIGURATION & UI STYLING
+#  1. PAGE CONFIG & UI STYLING
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="AI Job Matcher | Waqaas Hussain", layout="wide", page_icon="")
+st.set_page_config(page_title="AI Job Matcher | Waqaas Hussain", layout="wide", page_icon="🤖")
 
+# Custom CSS for Professional Look
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .main { background-color: #f4f7f6; }
-    .header-container {
-        background: linear-gradient(135deg, #0f172a, #1e293b);
-        padding: 40px; border-radius: 20px; color: white;
-        text-align: center; margin-bottom: 30px;
-    }
+    .main { background-color: #f8fafc; }
     .job-card {
-        background: white; padding: 25px; border-radius: 15px;
-        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        border-left: 6px solid #3b82f6; margin-bottom: 20px;
-        transition: transform 0.2s;
+        background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        border-left: 5px solid #2563eb; margin-bottom: 15px;
+        transition: 0.3s;
     }
-    .job-card:hover { transform: translateY(-5px); }
+    .job-card:hover { transform: scale(1.01); border-left: 5px solid #059669; }
     .match-badge {
         background: #dcfce7; color: #166534;
-        padding: 5px 15px; border-radius: 20px; font-weight: bold;
+        padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;
+    }
+    .skill-tag {
+        background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+        padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 5px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. DATA COLLECTION (Methodology Step 1)
+#  2. DATASET (Realistic AI/Tech Jobs)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_job_data():
-    # Structured dataset representing real-world job listings
     data = [
-        {"id": 1, "title": "AI Engineer", "company": "DeepMind", "location": "Remote", "category": "AI/ML", "skills": "Python, TensorFlow, PyTorch, Deep Learning", "desc": "Design and implement neural networks and machine learning models."},
-        {"id": 2, "title": "Data Scientist", "company": "DataCorp", "location": "Karachi", "category": "Data Science", "skills": "Python, R, SQL, Machine Learning, Statistics", "desc": "Extract insights from complex datasets and build predictive models."},
-        {"id": 3, "title": "Full Stack Developer", "company": "SoftSolutions", "location": "Remote", "category": "Engineering", "skills": "React, Node.js, JavaScript, MongoDB, HTML, CSS", "desc": "Develop and maintain end-to-end web applications."},
-        {"id": 4, "title": "Backend Developer", "company": "FinTech Hub", "location": "Lahore", "category": "Engineering", "skills": "Python, Django, PostgreSQL, Docker, REST APIs", "desc": "Build scalable backend architectures and API integrations."},
-        {"id": 5, "title": "Cybersecurity Specialist", "company": "SecureNet", "location": "Islamabad", "category": "Security", "skills": "Network Security, Linux, Ethical Hacking, Python", "desc": "Identify vulnerabilities and safeguard corporate digital infrastructure."},
-        {"id": 6, "title": "Cloud Architect", "company": "CloudNine", "location": "Remote", "category": "DevOps", "skills": "AWS, Azure, Kubernetes, Terraform, Python", "desc": "Design and manage cloud infrastructure and automation pipelines."},
+        {"id": 1, "title": "AI Engineer", "company": "DeepMind", "location": "Remote", "category": "AI/ML", "skills": "Python, TensorFlow, PyTorch, Deep Learning", "desc": "Build neural networks and deploy LLMs."},
+        {"id": 2, "title": "Data Scientist", "company": "DataCorp", "location": "Karachi", "category": "Data Science", "skills": "Python, SQL, Machine Learning, Statistics", "desc": "Analyze big data and create predictive models."},
+        {"id": 3, "title": "Full Stack Developer", "company": "SoftSolutions", "location": "Remote", "category": "Web Dev", "skills": "React, Node.js, JavaScript, MongoDB, HTML, CSS", "desc": "End-to-end web application development."},
+        {"id": 4, "title": "Backend Developer", "company": "FinTech", "location": "Lahore", "category": "Web Dev", "skills": "Python, Django, FastAPI, PostgreSQL, Docker", "desc": "Scalable API and database architecture."},
+        {"id": 5, "title": "Cybersecurity Analyst", "company": "SecureNet", "location": "Islamabad", "category": "Security", "skills": "Linux, Ethical Hacking, Network Security, Python", "desc": "Securing digital infrastructure and pentesting."},
+        {"id": 6, "title": "Cloud Architect", "company": "CloudNine", "location": "Remote", "category": "DevOps", "skills": "AWS, Azure, Kubernetes, Terraform", "desc": "Managing cloud infrastructure and CI/CD."},
     ]
     return pd.DataFrame(data)
 
 # ──────────────────────────────────────────────────────────────
-#  3. DATA PREPROCESSING & MODEL (Methodology Steps 2 & 3)
+#  3. AI ENGINE (Preprocessing & TF-IDF)
 # ──────────────────────────────────────────────────────────────
-def preprocess_text(text):
+def clean_text(text):
     text = text.lower()
     text = re.sub(r'[^a-z0-9\s]', '', text)
     return text
 
 @st.cache_resource
-def initialize_engine(df):
-    # TF-IDF Vectorization for Feature Extraction
-    tfidf = TfidfVectorizer(stop_words='english')
-    # Combine Title, Skills, and Description for a semantic profile
-    content = df['title'] + " " + df['skills'] + " " + df['desc']
-    tfidf_matrix = tfidf.fit_transform(content.apply(preprocess_text))
-    return tfidf, tfidf_matrix
+def build_vectorizer(df):
+    tfidf = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
+    # Combine features for better semantic understanding
+    corpus = df['title'] + " " + df['skills'] + " " + df['desc']
+    matrix = tfidf.fit_transform(corpus.apply(clean_text))
+    return tfidf, matrix
 
 # ──────────────────────────────────────────────────────────────
-#  4. SIDEBAR NAVIGATION
+#  4. APP LOGIC
 # ──────────────────────────────────────────────────────────────
 df = load_job_data()
-tfidf_vec, matrix = initialize_engine(df)
+tfidf_vec, job_matrix = build_vectorizer(df)
 
+# Sidebar
 with st.sidebar:
-    st.title("Navigation")
-    selection = st.radio("Sections", [" Home", " Job Recommendations", " Market Analytics", " Project Proposal"])
+    st.image("https://cdn-icons-png.flaticon.com/512/3858/3858684.png", width=80)
+    st.title("AI Matcher v2.0")
+    menu = st.radio("Navigation", ["🏠 Dashboard", "🔍 Match My Skills", "📊 Market Insights", "📖 Documentation"])
     st.markdown("---")
-    st.markdown(f"**Developed by:** \nWaqaas Hussain  \n*Aror University Sukkur*")
+    st.write(f"**Dev:** Waqaas Hussain\n**Uni:** Aror University")
 
-# ──────────────────────────────────────────────────────────────
-#  5. SECTION: HOME
-# ──────────────────────────────────────────────────────────────
-if selection == "Home":
-    st.markdown("""
-    <div class="header-container">
-        <h1>AI-Based Job Recommendation System</h1>
-        <p>A Content-Based Filtering Approach Using TF-IDF & Cosine Similarity</p>
-    </div>
-    """, unsafe_allow_html=True)
+# --- DASHBOARD ---
+if menu == "🏠 Dashboard":
+    st.title("Next-Gen Job Recommendation System")
+    st.info("Welcome, Waqaas! Use the AI engine to find jobs that match your technical profile.")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Welcome to the Future of Job Hunting")
-        st.write("""
-        Finding the right job is a complex task. Traditional systems rely on simple keywords, 
-        often yielding irrelevant results. This Artificial Intelligence system analyzes the 
-        semantic relationship between your skills and job requirements to provide 
-        highly accurate recommendations.
-        """)
-        st.info("Use the sidebar to input your skills and find the best matches!")
-    with col2:
-        st.image("https://cdn-icons-png.flaticon.com/512/3222/3222800.png", width=250)
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Active Jobs", len(df))
+    col2.metric("Algorithm", "TF-IDF")
+    col3.metric("Similarity", "Cosine")
+    
+    st.markdown("### How it works?")
+    st.write("Our AI analyzes the **semantic distance** between your skills and job descriptions using vector space modeling.")
 
-# ──────────────────────────────────────────────────────────────
-#  6. SECTION: JOB RECOMMENDATIONS (Core Engine)
-# ──────────────────────────────────────────────────────────────
-elif selection == "Job Recommendations":
-    st.header("Search & Match Engine")
+# --- MATCH ENGINE ---
+elif menu == "🔍 Match My Skills":
+    st.header("AI Matching Engine")
     
-    left, right = st.columns([1, 2])
-    
-    with left:
-        st.subheader("Your Profile")
-        user_input = st.text_area("List Your Skills", placeholder="e.g. Python, SQL, Machine Learning, React", height=150)
-        loc_pref = st.selectbox("Preferred Location", ["Any", "Remote", "Karachi", "Lahore", "Islamabad"])
-        process_btn = st.button("Generate Recommendations", type="primary")
+    c1, c2 = st.columns([1, 2])
+    with c1:
+        user_input = st.text_area("Enter your Skills/Bio", placeholder="e.g. I am a Python expert with knowledge of Machine Learning and SQL...", height=200)
+        loc_filter = st.selectbox("Location Preference", ["All"] + list(df['location'].unique()))
+        match_threshold = st.slider("Similarity Threshold (%)", 0, 100, 10)
+        btn = st.button("Generate Recommendations", type="primary")
 
-    with right:
-        if process_btn and user_input:
-            # Step 4: Cosine Similarity Matching
-            user_vector = tfidf_vec.transform([preprocess_text(user_input)])
-            scores = cosine_similarity(user_vector, matrix).flatten()
+    with c2:
+        if btn and user_input:
+            # Transform user input to vector
+            user_vec = tfidf_vec.transform([clean_text(user_input)])
+            # Calculate Similarity
+            sim_scores = cosine_similarity(user_vec, job_matrix).flatten()
+            df['match_score'] = sim_scores * 100
             
-            df['match_percentage'] = scores * 100
-            results = df.sort_values(by='match_percentage', ascending=False)
-            
-            if loc_pref != "Any":
-                results = results[results['location'] == loc_pref]
+            # Filter & Sort
+            results = df[df['match_score'] >= match_threshold].sort_values(by='match_score', ascending=False)
+            if loc_filter != "All":
+                results = results[results['location'] == loc_filter]
 
-            st.subheader("Matched Job Listings")
-            for _, row in results.iterrows():
-                if row['match_percentage'] > 5:  # Threshold
+            if not results.empty:
+                st.success(f"Found {len(results)} matches!")
+                for _, row in results.iterrows():
                     st.markdown(f"""
                     <div class="job-card">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:1.4rem; font-weight:700; color:#1e293b;">{row['title']}</span>
-                            <span class="match-badge">{int(row['match_percentage'])}% Match</span>
+                            <span style="font-size:1.2rem; font-weight:700;">{row['title']}</span>
+                            <span class="match-badge">{int(row['match_score'])}% Match</span>
                         </div>
-                        <div style="color:#64748b; margin-top:5px;">🏢 {row['company']} | 📍 {row['location']}</div>
-                        <p style="margin-top:15px; color:#475569;">{row['desc']}</p>
-                        <div style="margin-top:10px;">
-                            <code style="background:#f1f5f9; padding:5px; color:#2563eb;">{row['skills']}</code>
-                        </div>
+                        <div style="color:#64748b; margin-bottom:10px;">🏢 {row['company']} | 📍 {row['location']}</div>
+                        <p style="font-size:0.9rem;">{row['desc']}</p>
+                        <div>{" ".join([f'<span class="skill-tag">{s.strip()}</span>' for s in row['skills'].split(',')])}</div>
                     </div>
                     """, unsafe_allow_html=True)
-        elif process_btn and not user_input:
-            st.error("Please provide your skills to analyze.")
+            else:
+                st.warning("No matches found. Try adding more skills.")
         else:
-            st.info("Awaiting input... enter your skills in the left panel.")
+            st.info("Waiting for input... Fill in your skills on the left.")
 
-# ──────────────────────────────────────────────────────────────
-#  7. SECTION: ANALYTICS
-# ──────────────────────────────────────────────────────────────
-elif selection == " Market Analytics":
-    st.header("System Statistics & Insights")
-    st.write("Visual breakdown of the current job dataset.")
+# --- ANALYTICS ---
+elif menu == "📊 Market Insights":
+    st.header("Dataset Analytics")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig1 = px.pie(df, names='category', title="Job Distribution", hole=0.4)
+        st.plotly_chart(fig1)
+    with col_b:
+        fig2 = px.bar(df, x='location', color='category', title="Jobs by City")
+        st.plotly_chart(fig2)
+
+# --- DOCUMENTATION ---
+elif menu == "📖 Documentation":
+    st.header("Technical Overview")
+    st.markdown("""
+    ### 1. Mathematical Approach
+    We use **Cosine Similarity** to measure the angle between two vectors in a multidimensional space:
+    """)
+    st.latex(r"Similarity(A, B) = \frac{A \cdot B}{\|A\| \|B\|}")
     
-    c1, c2 = st.columns(2)
-    with c1:
-        fig_pie = px.pie(df, names='category', title='Jobs by Category', hole=0.5)
-        st.plotly_chart(fig_pie)
-    with c2:
-        fig_bar = px.bar(df, x='location', color='category', title='Job Distribution by Location')
-        st.plotly_chart(fig_bar)
-
-# ──────────────────────────────────────────────────────────────
-#  8. SECTION: PROJECT PROPOSAL (Proposal Content)
-# ──────────────────────────────────────────────────────────────
-elif selection == "📄 Project Proposal":
-    st.header("Academic Project Documentation")
+    st.markdown("""
+    ### 2. Feature Extraction
+    **TF-IDF** (Term Frequency-Inverse Document Frequency) is used to give weight to unique skills (like 'PyTorch') while ignoring common words (like 'the', 'is').
     
-    with st.expander("Project Introduction & Background", expanded=True):
-        st.write("""
-        Artificial Intelligence can improve the recruitment process by analyzing user skills and matching them 
-        accurately with job requirements. This project focuses on developing a Streamlit-based interface 
-        for intelligent job suggestions.
-        """)
+    ### 3. Tech Stack
+    - **Frontend:** Streamlit
+    - **Data Handling:** Pandas / Numpy
+    - **ML Engine:** Scikit-Learn (Linear Models)
+    """)
 
-    with st.expander("Problem Statement"):
-        st.write("Traditional systems lack personalization. This AI system addresses keyword-matching inefficiencies.")
-
-    with st.expander("Objectives"):
-        st.markdown("""
-        - Design a Streamlit-based GUI.
-        - Develop a Machine Learning model for matching.
-        - Analyze semantic profiles of user skills.
-        - Evaluate performance using Cosine Similarity.
-        """)
-
-    with st.expander("Proposed Methodology"):
-        st.markdown("""
-        - **Step 1:** Data Collection (CSV/Manual Datasets).
-        - **Step 2:** Preprocessing (Normalization/Stop-word removal).
-        - **Step 3:** Feature Extraction (TF-IDF Vectorization).
-        - **Step 4:** Implementation (Python & Streamlit).
-        """)
-
-# Footer
 st.markdown("---")
-st.caption("© 2026 Waqaas Hussain | Aror University Sukkur | Department of Artificial Intelligence")
+st.caption("Developed by Waqaas Hussain | Aror University Sukkur | Department of AI")
