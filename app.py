@@ -150,8 +150,8 @@ with st.sidebar:
     st.write("**Developed By :**")
     st.caption("Waqaas Hussain (SAP-291)")
     st.caption("Hira Abdul Hafeez (SAP-314)")
-    st.write("**Course:**")
-    st.caption("Programming for AI (Sir Abdul Haseeb)")
+
+
 
 # ──────────────────────────────────────────────────────────────
 #  5. APP PAGES
