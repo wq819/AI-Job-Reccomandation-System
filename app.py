@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 # ──────────────────────────────────────────────────────────────
 #  1. PAGE CONFIGURATION & UI STYLING
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="AI Job Matcher | Waqaas Hussain", layout="wide", page_icon="🎯")
+st.set_page_config(page_title="AI Job Matcher | Waqaas Hussain", layout="wide", page_icon="")
 
 st.markdown("""
 <style>
@@ -87,14 +87,14 @@ tfidf_vec, matrix = initialize_engine(df)
 
 with st.sidebar:
     st.title("Navigation")
-    selection = st.radio("Sections", ["🏠 Home", "🔍 Job Recommendations", "📊 Market Analytics", "📄 Project Proposal"])
+    selection = st.radio("Sections", [" Home", " Job Recommendations", " Market Analytics", " Project Proposal"])
     st.markdown("---")
     st.markdown(f"**Developed by:** \nWaqaas Hussain  \n*Aror University Sukkur*")
 
 # ──────────────────────────────────────────────────────────────
 #  5. SECTION: HOME
 # ──────────────────────────────────────────────────────────────
-if selection == "🏠 Home":
+if selection == "Home":
     st.markdown("""
     <div class="header-container">
         <h1>AI-Based Job Recommendation System</h1>
@@ -118,7 +118,7 @@ if selection == "🏠 Home":
 # ──────────────────────────────────────────────────────────────
 #  6. SECTION: JOB RECOMMENDATIONS (Core Engine)
 # ──────────────────────────────────────────────────────────────
-elif selection == "🔍 Job Recommendations":
+elif selection == "Job Recommendations":
     st.header("Search & Match Engine")
     
     left, right = st.columns([1, 2])
@@ -165,7 +165,7 @@ elif selection == "🔍 Job Recommendations":
 # ──────────────────────────────────────────────────────────────
 #  7. SECTION: ANALYTICS
 # ──────────────────────────────────────────────────────────────
-elif selection == "📊 Market Analytics":
+elif selection == " Market Analytics":
     st.header("System Statistics & Insights")
     st.write("Visual breakdown of the current job dataset.")
     
