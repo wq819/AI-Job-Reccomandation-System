@@ -1,3 +1,10 @@
+# ============================================================
+#   AI-BASED JOB RECOMMENDATION SYSTEM (PROFESSIONAL VER)
+#   Institution : Aror University Sukkur
+#   Subject     : Programming for AI
+#   Algorithm   : TF-IDF Vectorization + Cosine Similarity
+# ============================================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -5,159 +12,175 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import plotly.express as px
 import re
+import warnings
+
+warnings.filterwarnings('ignore')
 
 # ──────────────────────────────────────────────────────────────
-#  1. PROFESSIONAL UI CONFIGURATION
+#  1. PAGE CONFIGURATION & UI STYLING
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch Pro | AI Recruitment", layout="wide", page_icon="🏢")
+st.set_page_config(page_title="TalentMatch Pro | Aror University", layout="wide", page_icon="🏢")
 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .main { background-color: #f8fafc; }
     
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        height: 3em;
-        background-color: #4338ca;
+    .header-container {
+        background: linear-gradient(135deg, #1e1b4b, #4338ca);
+        padding: 40px; border-radius: 20px; color: white;
+        text-align: center; margin-bottom: 30px;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
     }
-    .main-header {
-        background: #ffffff;
-        padding: 20px;
-        border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 30px;
+    .job-card {
+        background: white; padding: 20px; border-radius: 12px;
+        border: 1px solid #e2e8f0; margin-bottom: 15px;
+        transition: transform 0.2s;
     }
+    .job-card:hover { transform: translateY(-3px); border-color: #4338ca; }
+    
     .salary-tag {
-        background: #f0fdf4;
-        color: #166534;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
+        background: #f0fdf4; color: #166534;
+        padding: 4px 12px; border-radius: 6px;
+        font-weight: 600; font-size: 0.85rem;
     }
-    .metric-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #f1f5f9;
-        text-align: center;
+    .match-badge {
+        background: #e0e7ff; color: #4338ca;
+        padding: 5px 12px; border-radius: 20px; font-weight: bold;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. ADVANCED DATASET (With Salary & Company Intel)
+#  2. ENHANCED DATASET (With Professional Metadata)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
-def get_enterprise_data():
+def load_professional_data():
     data = [
         {
-            "id": 1, "title": "Senior AI Researcher", "company": "DeepMind", 
-            "location": "Remote", "base_salary": 145000, "currency": "$",
-            "skills": "Python, TensorFlow, PyTorch, Research, JAX",
-            "desc": "Lead the next generation of AGI research and neural architecture search.",
+            "id": 1, "title": "Senior AI Engineer", "company": "DeepMind", 
+            "location": "Remote", "base_salary": 150000, "currency": "$",
+            "category": "AI/ML", "skills": "Python, TensorFlow, PyTorch, Deep Learning", 
+            "desc": "Lead neural architecture search and implement production-grade ML models.",
             "logo": "https://cdn-icons-png.flaticon.com/512/2103/2103633.png",
             "tier": "Tier 1 - Tech Giant"
         },
         {
-            "id": 2, "title": "Lead Data Architect", "company": "DataCorp", 
-            "location": "Karachi", "base_salary": 280000, "currency": "Rs.",
-            "skills": "SQL, Snowflake, Python, ETL, Apache Spark, Statistics",
-            "desc": "Engineer scalable data pipelines and governance frameworks for enterprise clients.",
+            "id": 2, "title": "Data Architect", "company": "DataCorp", 
+            "location": "Karachi", "base_salary": 250000, "currency": "Rs.",
+            "category": "Data Science", "skills": "SQL, Snowflake, Python, Machine Learning, ETL", 
+            "desc": "Design enterprise data warehouses and predictive analytics pipelines.",
             "logo": "https://cdn-icons-png.flaticon.com/512/4248/4248873.png",
             "tier": "Tier 2 - Enterprise"
         },
         {
-            "id": 3, "title": "Cyber Threat Analyst", "company": "SecureNet", 
-            "location": "Islamabad", "base_salary": 190000, "currency": "Rs.",
-            "skills": "Network Security, Linux, Penetration Testing, Python, Wireshark",
-            "desc": "Proactively hunt threats and secure critical cloud infrastructure.",
+            "id": 3, "title": "Cybersecurity Lead", "company": "SecureNet", 
+            "location": "Islamabad", "base_salary": 210000, "currency": "Rs.",
+            "category": "Security", "skills": "Network Security, Linux, Ethical Hacking, Python", 
+            "desc": "Orchestrate threat hunting and secure critical cloud infrastructure.",
             "logo": "https://cdn-icons-png.flaticon.com/512/1055/1055683.png",
             "tier": "Tier 1 - Security"
+        },
+        {
+            "id": 4, "title": "Cloud Solutions Architect", "company": "CloudNine", 
+            "location": "Remote", "base_salary": 135000, "currency": "$",
+            "category": "DevOps", "skills": "AWS, Azure, Kubernetes, Terraform, Python", 
+            "desc": "Design scalable cloud-native architectures and automation pipelines.",
+            "logo": "https://cdn-icons-png.flaticon.com/512/1162/1162499.png",
+            "tier": "Tier 2 - SaaS"
         }
-        # Add more here...
     ]
     return pd.DataFrame(data)
 
 # ──────────────────────────────────────────────────────────────
-#  3. INTEGRATED LOGIC (Salary Adjustment & Matching)
+#  3. SYSTEM LOGIC
 # ──────────────────────────────────────────────────────────────
-def calculate_dynamic_salary(base, match_score, skills_input):
-    # Skill-based premium logic
-    premium_skills = ['pytorch', 'tensorflow', 'snowflake', 'jax', 'kubernetes']
-    multiplier = 1.0
-    for skill in premium_skills:
-        if skill in skills_input.lower():
-            multiplier += 0.05 # 5% increase per premium skill
-    
-    # Matching accuracy bonus (simulating negotiation leverage)
-    if match_score > 80:
-        multiplier += 0.10
-    
+def preprocess_text(text):
+    return re.sub(r'[^a-z0-9\s]', '', text.lower())
+
+def calculate_dynamic_salary(base, match_score):
+    # Higher match score simulates better negotiation leverage
+    multiplier = 1.0 + (match_score / 1000) 
     return int(base * multiplier)
 
+@st.cache_resource
+def initialize_engine(df):
+    tfidf = TfidfVectorizer(stop_words='english')
+    content = df['title'] + " " + df['skills'] + " " + df['desc']
+    matrix = tfidf.fit_transform(content.apply(preprocess_text))
+    return tfidf, matrix
+
 # ──────────────────────────────────────────────────────────────
-#  4. APP ROUTING
+#  4. APP INTERFACE
 # ──────────────────────────────────────────────────────────────
-df = get_enterprise_data()
-tfidf = TfidfVectorizer(stop_words='english')
-matrix = tfidf.fit_transform(df['title'] + " " + df['skills'] + " " + df['desc'])
+df = load_professional_data()
+tfidf_vec, matrix = initialize_engine(df)
 
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=60)
+    st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=80)
     st.title("TalentMatch Pro")
-    menu = st.tabs(["Search", "Analytics", "Settings"])
+    selection = st.radio("Menu", ["🏠 Home", "🔍 Smart Search", "📊 Market Insights", "📄 Documentation"])
+    st.markdown("---")
+    st.markdown("**Developers:**\nWaqaas Hussain & Hira Abdul Hafeez\n*Aror University Sukkur*")
 
-# --- TAB 1: SMART SEARCH ---
-with menu[0]:
-    user_skills = st.text_area("Candidate Skill Profile", placeholder="Enter technical stack...")
-    exp_level = st.select_slider("Experience Level", options=["Junior", "Intermediate", "Senior", "Principal"])
-    find_btn = st.button("Analyze Match")
+# --- SECTION: HOME ---
+if selection == "🏠 Home":
+    st.markdown("""
+    <div class="header-container">
+        <h1>Enterprise AI Job Recommendation</h1>
+        <p>Professional Matching via TF-IDF Vectorization & Salary Analytics</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("Next-Gen Recruitment")
+        st.write("Our system goes beyond keywords to understand the professional depth of your skills, providing estimated salary brackets and company tiering for a better career fit.")
+    with c2:
+        st.image("https://cdn-icons-png.flaticon.com/512/8074/8074470.png", width=250)
 
-if find_btn and user_skills:
-    # Match Engine
-    user_vec = tfidf.transform([user_skills.lower()])
-    scores = cosine_similarity(user_vec, matrix).flatten()
-    df['match'] = scores * 100
+# --- SECTION: SMART SEARCH ---
+elif selection == "🔍 Smart Search":
+    st.title("AI-Driven Opportunity Search")
+    l, r = st.columns([1, 2.5])
     
-    # Sort and Display
-    results = df.sort_values('match', ascending=False)
-    
-    st.subheader(f"Matching Results for {exp_level} Profile")
-    
-    col_a, col_b = st.columns([2, 1])
-    
-    with col_a:
-        for i, row in results.iterrows():
-            if row['match'] > 10:
-                dyn_salary = calculate_dynamic_salary(row['base_salary'], row['match'], user_skills)
-                
-                with st.container():
+    with l:
+        st.subheader("Candidate Profile")
+        user_input = st.text_area("List Technical Skills", placeholder="e.g., Python, SQL, AWS...", height=150)
+        loc = st.selectbox("Preferred Location", ["Any", "Remote", "Karachi", "Islamabad", "Lahore"])
+        btn = st.button("Generate Recommendations", type="primary")
+
+    with r:
+        if btn and user_input:
+            user_vec = tfidf_vec.transform([preprocess_text(user_input)])
+            scores = cosine_similarity(user_vec, matrix).flatten()
+            df['match'] = scores * 100
+            
+            results = df.sort_values('match', ascending=False)
+            if loc != "Any":
+                results = results[results['location'] == loc]
+            
+            st.subheader("Top Professional Matches")
+            for _, row in results.iterrows():
+                if row['match'] > 5:
+                    dyn_sal = calculate_dynamic_salary(row['base_salary'], row['match'])
                     st.markdown(f"""
-                    <div style="background:white; padding:20px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:15px;">
-                        <div style="display:flex; justify-content:space-between;">
+                    <div class="job-card">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
                             <div style="display:flex; gap:15px;">
-                                <img src="{row['logo']}" width="50">
+                                <img src="{row['logo']}" width="50" style="border-radius:8px;">
                                 <div>
-                                    <h3 style="margin:0;">{row['title']}</h3>
-                                    <p style="color:#64748b; margin:0;">{row['company']} • {row['tier']}</p>
+                                    <h3 style="margin:0; color:#1e1b4b;">{row['title']}</h3>
+                                    <p style="margin:0; color:#6366f1; font-weight:600;">{row['company']} • {row['tier']}</p>
+                                    <p style="margin:0; color:#94a3b8; font-size:0.8rem;">📍 {row['location']}</p>
                                 </div>
                             </div>
                             <div style="text-align:right;">
-                                <span class="salary-tag">EST. {row['currency']}{dyn_salary:,}</span>
-                                <p style="font-size:0.8rem; color:#4338ca; font-weight:700; margin-top:5px;">{int(row['match'])}% COMPATIBILITY</p>
+                                <div class="salary-tag">EST. {row['currency']}{dyn_sal:,}</div>
+                                <div style="margin-top:8px;" class="match-badge">{int(row['match'])}% Match</div>
                             </div>
                         </div>
-                        <p style="font-size:0.9rem; color:#475569; margin-top:10px;">{row['desc']}</p>
-                        <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                            {' '.join([f'<span style="background:#f1f5f9; font-size:10px; padding:2px 8px; border-radius:4px;">{s.strip()}</span>' for s in row['skills'].split(',')])}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-    with col_b:
-        st.markdown("<div class='metric-card'><h4>Market Competitiveness</h4></div>", unsafe_allow_html=True)
-        avg_score = results['match'].mean()
-        st.metric("Profile Strength", f"{int(avg_score)}%", delta=f"{int(avg_score-40)}% vs Market")
-        st.write("Your profile is particularly strong in: **Python Ecosystem**")
+                        <p style="margin-top:15px; color:#475569; font-size:0.9rem;">{row['desc']}</p>
+                        <div style="margin-top:10px;">
+                            <code style="background:#f1f5f9; color:#4338ca; padding:4px 8px; border-radius:5px; font-size:0.8rem
