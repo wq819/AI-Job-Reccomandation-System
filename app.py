@@ -6,23 +6,16 @@
 #   Features     : Glassmorphism · Dark/Light · CSS Animations
 #                  Inline SVG Icons · Plotly Charts · Skill Gap
 # ============================================================
-
 import streamlit as st
 import pandas as pd
-import numpy as np
+import plotly.express as px
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from collections import Counter
-import plotly.graph_objects as go
-import plotly.express as px
-import re, json, warnings
-warnings.filterwarnings('ignore')
 
 # ╔══════════════════════════════════════════════════════════╗
 #   PAGE CONFIG
 # ╚══════════════════════════════════════════════════════════╝
-st.set_page_config(
-    page_title="JobMatch AI · Waqaas Hussain",
+st.set_page_config(page_title="AI Job Recommender", layout="wide")
     page_icon="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2300C9A7'/><stop offset='1' stop-color='%233B82F6'/></linearGradient></defs><circle cx='16' cy='16' r='16' fill='%230A1628'/><path d='M8 20 L16 8 L24 20' stroke='url(%23g)' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='16' cy='10' r='2' fill='%2300C9A7'/></svg>",
     layout="wide",
     initial_sidebar_state="expanded"
