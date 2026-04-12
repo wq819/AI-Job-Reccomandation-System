@@ -129,4 +129,94 @@ if selection == "🏠 Home":
         """)
         st.info("💡 **Pro-Tip:** List specific libraries (like PyTorch or React) for a higher match accuracy!")
     with col2:
-        st.image("https://cdn-icons-png.flaticon.
+        st.image("https://cdn-icons-png.flaticon.com/512/8074/8074470.png", width=300)
+
+# ──────────────────────────────────────────────────────────────
+#  6. SECTION: JOB RECOMMENDATIONS (CORE ENGINE)
+# ──────────────────────────────────────────────────────────────
+elif selection == "🔍 Job Recommendations":
+    st.title("Opportunity Finder")
+    
+    left, right = st.columns([1, 2.5])
+    
+    with left:
+        st.subheader("Your Candidate Profile")
+        user_input = st.text_area("Input Your Skills", placeholder="e.g. Python, Machine Learning, AWS, SQL...", height=150)
+        loc_pref = st.selectbox("Preferred Location", ["Any", "Remote", "Karachi", "Lahore", "Islamabad"])
+        process_btn = st.button("Generate My Matches", type="primary", use_container_width=True)
+
+    with right:
+        if process_btn and user_input:
+            user_vector = tfidf_vec.transform([preprocess_text(user_input)])
+            scores = cosine_similarity(user_vector, matrix).flatten()
+            
+            df['match_percentage'] = scores * 100
+            results = df.sort_values(by='match_percentage', ascending=False)
+            
+            if loc_pref != "Any":
+                results = results[results['location'] == loc_pref]
+
+            st.subheader("Calculated Matches")
+            
+            for _, row in results.iterrows():
+                if row['match_percentage'] > 5:
+                    st.markdown(f"""
+                    <div class="job-card">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <div style="display:flex; align-items:center;">
+                                <img src="{row['logo']}" class="company-logo">
+                                <div>
+                                    <div style="font-size:1.3rem; font-weight:700; color:#1e293b;">{row['title']}</div>
+                                    <div style="color:#6366f1; font-weight:600;">{row['company']} • {row['location']}</div>
+                                </div>
+                            </div>
+                            <span class="match-badge">{int(row['match_percentage'])}% Match</span>
+                        </div>
+                        <p style="margin-top:15px; color:#475569;">{row['desc']}</p>
+                        <div style="margin-top:10px;">
+                            <span style="font-size:0.8rem; color:#94a3b8; font-weight:bold;">REQUIRED:</span>
+                            <code style="background:#f1f5f9; padding:3px 8px; color:#4338ca; border-radius:5px; font-size:0.9rem;">{row['skills']}</code>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        elif process_btn and not user_input:
+            st.error("Error: Please enter your skills so the AI can analyze them.")
+        else:
+            st.info("Input your professional skills on the left to see matching opportunities.")
+
+# ──────────────────────────────────────────────────────────────
+#  7. SECTION: ANALYTICS
+# ──────────────────────────────────────────────────────────────
+elif selection == "📊 Market Analytics":
+    st.header("Dataset Insights")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        fig_pie = px.pie(df, names='category', title='Job Category Distribution', 
+                         color_discrete_sequence=px.colors.qualitative.Pastel)
+        st.plotly_chart(fig_pie, use_container_width=True)
+    with c2:
+        fig_bar = px.bar(df, x='location', color='category', title='Geographic Availability',
+                         color_discrete_sequence=px.colors.qualitative.Safe)
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+# ──────────────────────────────────────────────────────────────
+#  8. SECTION: PROPOSAL
+# ──────────────────────────────────────────────────────────────
+elif selection == "📄 Project Proposal":
+    st.header("Academic Documentation")
+    
+    with st.expander("Abstract & Background", expanded=True):
+        st.write("An implementation of Content-Based Filtering for precision recruitment.")
+
+    with st.expander("Methodology Stack"):
+        st.markdown("""
+        * **Frontend:** Streamlit Web Framework
+        * **Backend:** Python 3.10+
+        * **NLP Model:** TF-IDF Vectorizer
+        * **Scoring:** Cosine Similarity Algorithm
+        """)
+
+# Footer
+st.markdown("---")
+st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 0.8rem;'>Department of Artificial Intelligence | Aror University Sukkur</p>", unsafe_allow_html=True)
