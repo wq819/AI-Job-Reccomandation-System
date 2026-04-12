@@ -95,12 +95,12 @@ with st.sidebar:
     u_skills = st.text_area("List your skills", placeholder="e.g. Python, Machine Learning, SQL")
     u_role = st.text_input("Target Job Title", placeholder="e.g. Data Scientist")
     
-    find_jobs = st.button("Run AI Engine", type="primary")
+    find_jobs = st.button("APPLY", type="primary")
 
 # Header Section
-st.title("TalentMatch AI")
-st.subheader("BS Artificial Intelligence | Semester 4 Project")
-st.write(f"**Students:** Waqaas Hussain & Hira Abdul Hafeez | **Aror University Sukkur**")
+st.title("AI JOB RECCOMANDATION SYSTEM")
+st.subheader("BS Artificial Intelligence | Semester 4 ")
+st.write(f"**Developed By ** Waqaas Hussain & Hira Abdul Hafeez | **Aror University Sukkur**")
 
 if find_jobs and u_skills:
     df = load_data()
@@ -125,7 +125,7 @@ if find_jobs and u_skills:
             </div>
             """, unsafe_allow_html=True)
 else:
-    st.info("👋 Welcome! Please enter your skills in the sidebar to see the recommendation engine in action.")
+    st.info("👋 Welcome! Please enter your skills in the sidebar to see the recommendation system in action.")
 
 # Technical Logic Explanation (For the VIVA/Presentation)
 with st.expander("🔬 View Technical Logic (NLP Pipeline)"):
