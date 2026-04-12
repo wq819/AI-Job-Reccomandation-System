@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 # ──────────────────────────────────────────────────────────────
 #  1. GLOBAL CONFIGURATION & CUSTOM CSS
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch AI | Aror University", layout="wide", page_icon="🎓")
+st.set_page_config(page_title="AI JOB RECCOMANDATION SYSTEM | Aror University", layout="wide", page_icon="🎓")
 
 st.markdown("""
 <style>
@@ -64,7 +64,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. STUDENT-CENTRIC DATASET (Pakistan Focus)
+#  2. STUDENT-CENTRIC DATASET 
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_project_database():
@@ -108,7 +108,7 @@ def load_project_database():
     return pd.DataFrame(data)
 
 # ──────────────────────────────────────────────────────────────
-#  3. AI CORE ENGINE (NLP LOGIC)
+#  3. 
 # ──────────────────────────────────────────────────────────────
 def compute_ai_matching(user_input, df):
     if not user_input.strip(): return pd.DataFrame()
@@ -144,10 +144,10 @@ def compute_ai_matching(user_input, df):
 df = load_project_database()
 
 with st.sidebar:
-    st.markdown('<div class="sidebar-brand"><h2>TalentMatch AI</h2><p>Aror University Edition</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-brand"><h2>TalentMatch AI</h2><p>AI JOB RECCOMANDATION SYSTEM</p></div>', unsafe_allow_html=True)
     nav_choice = st.radio("System Menu", ["🏠 Dashboard", "🔍 Smart Matcher", "📊 Skill Analytics"])
     st.markdown("---")
-    st.write("**Student Details:**")
+    st.write("**Developed By :**")
     st.caption("Waqaas Hussain (SAP-291)")
     st.caption("Hira Abdul Hafeez (SAP-314)")
     st.write("**Course:**")
