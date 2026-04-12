@@ -1,9 +1,8 @@
 # ============================================================
-#   TALENTMATCH AI: ENTERPRISE RECRUITMENT DASHBOARD
+#   AI-BASED JOB RECOMMENDATION SYSTEM (V1.0)
 #   Institution : Aror University Sukkur
 #   Students    : Waqaas Hussain & Hira Abdul Hafeez
-#   Logic       : TF-IDF Vectorization + Cosine Similarity
-#   Semester    : 4th (BS Artificial Intelligence)
+#   Techniques  : TF-IDF Vectorization & Cosine Similarity
 # ============================================================
 
 import streamlit as st
@@ -12,13 +11,10 @@ import numpy as np
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import plotly.express as px
 
 # ──────────────────────────────────────────────────────────────
-#  1. PREMIUM UI CONFIGURATION & CSS
+#  1. THEME MANAGEMENT (DARK & WHITE MODE)
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch AI Pro", layout="wide", page_icon="🎯")
-
 if 'theme' not in st.session_state:
     st.session_state.theme = 'dark'
 
@@ -27,143 +23,115 @@ def toggle_theme():
 
 # UI Colors based on selection
 if st.session_state.theme == 'dark':
-    bg, text, card, border, accent = "#0F172A", "#F1F5F9", "#1E293B", "#334155", "#10B981"
+    bg_color = "#0D0D1A"
+    text_color = "#E8E8F0"
+    card_bg = "#16213E"
+    border_color = "rgba(108,99,255,0.3)"
 else:
-    bg, text, card, border, accent = "#F8FAFC", "#1E293B", "#FFFFFF", "#E2E8F0", "#059669"
+    bg_color = "#F0F2F6"
+    text_color = "#1E293B"
+    card_bg = "#FFFFFF"
+    border_color = "#D1D5DB"
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-    html, body, [class*="css"] {{ font-family: 'Plus Jakarta Sans', sans-serif; }}
-    .stApp {{ background-color: {bg}; color: {text}; transition: 0.3s; }}
-    
-    /* Hero Stats */
-    .stat-card {{
-        background: {card}; border: 1px solid {border};
-        padding: 20px; border-radius: 15px; text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }}
-    .stat-val {{ color: {accent}; font-size: 1.8rem; font-weight: 800; }}
-    
-    /* Job Card */
+    .stApp {{ background-color: {bg_color}; color: {text_color}; }}
     .job-card {{
-        background-color: {card}; border: 1px solid {border};
-        padding: 25px; border-radius: 20px; margin-bottom: 20px;
-        transition: 0.3s; display: flex; align-items: center; gap: 20px;
+        background-color: {card_bg};
+        border: 1px solid {border_color};
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }}
-    .job-card:hover {{ transform: translateY(-5px); border-color: {accent}; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }}
-    
-    .company-logo {{
-        width: 70px; height: 70px; border-radius: 15px;
-        display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(135deg, {accent}, #3B82F6); color: white;
-        font-size: 1.5rem; font-weight: bold;
-    }}
-    
-    .match-tag {{
-        background: rgba(16, 185, 129, 0.1); color: {accent};
-        padding: 5px 15px; border-radius: 50px; font-weight: 700; font-size: 0.8rem;
-    }}
+    .match-score {{ color: #43E97B; font-weight: bold; font-family: 'Courier New', monospace; }}
     </style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. DATASET & AI LOGIC
+#  2. LOCAL DATASET (Pakistani Tech Hubs)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
-def load_enterprise_db():
+def load_data():
     data = [
-        {"title": "AI Research Engineer", "company": "Systems Ltd", "location": "Lahore", "icon": "SL", "skills": "Python, NLP, PyTorch, Transformers", "desc": "Leading global AI innovation projects."},
-        {"title": "Senior Data Scientist", "company": "Afiniti", "location": "Karachi", "icon": "AF", "skills": "SQL, Statistics, Python, ML, AWS", "desc": "Behavioral matching for enterprise clients."},
-        {"title": "Machine Learning Intern", "company": "Folio3", "location": "Sukkur", "icon": "F3", "skills": "Python, Computer Vision, OpenCV, Git", "desc": "Developing AI for AgTech solutions."},
-        {"title": "Full Stack Dev (AI)", "company": "10Pearls", "location": "Islamabad", "icon": "10P", "skills": "React, Node.js, Python, OpenAI", "desc": "Building next-gen AI interfaces."},
-        {"title": "Cloud Architect", "company": "NetSol", "location": "Lahore", "icon": "NS", "skills": "Docker, Kubernetes, AWS, Terraform", "desc": "Scaling financial tech infrastructure."},
+        {"title": "AI Research Intern", "company": "Systems Ltd", "location": "Lahore", "skills": "Python, Machine Learning, NLP, Scikit-learn", "desc": "Assisting in neural network training and data preprocessing."},
+        {"title": "Junior Data Scientist", "company": "Afiniti", "location": "Karachi", "skills": "SQL, Python, Statistics, Machine Learning", "desc": "Analyzing patterns using behavioral matching algorithms."},
+        {"id": 3, "title": "Web Dev Intern", "company": "Aror Solutions", "location": "Sukkur", "skills": "HTML, CSS, JavaScript, React, Git", "desc": "Developing responsive frontend components for local clients."},
+        {"title": "Cloud Associate", "company": "NetSol", "location": "Islamabad", "skills": "AWS, Docker, Linux, Python", "desc": "Designing scalable cloud-native infrastructures."},
+        {"title": "Junior ML Engineer", "company": "Folio3", "location": "Karachi", "skills": "Python, Django, Computer Vision, Git", "desc": "Integrating CV models into mobile applications."}
     ]
     return pd.DataFrame(data)
 
-def run_recommendation_engine(user_query, df):
+# ──────────────────────────────────────────────────────────────
+#  3. NLP MATCHING ENGINE (TF-IDF & COSINE SIMILARITY)
+# ──────────────────────────────────────────────────────────────
+def calculate_recommendations(user_input, df):
+    # Data Cleaning
+    def clean_text(text):
+        return re.sub(r'[^a-z0-9\s]', '', text.lower())
+
+    # Feature Extraction
     tfidf = TfidfVectorizer(stop_words='english')
-    corpus = df['title'] + " " + df['skills'] + " " + df['desc']
-    matrix = tfidf.fit_transform(corpus.apply(lambda x: x.lower()))
-    user_vec = tfidf.transform([user_query.lower()])
-    df['match_score'] = cosine_similarity(user_vec, matrix).flatten() * 100
+    # Combine relevant columns into a "bag of words"
+    job_content = df['title'] + " " + df['skills'] + " " + df['desc']
     
-    def get_gap(row_skills):
-        req = set([s.strip().lower() for s in row_skills.split(',')])
-        user = set([s.strip().lower() for s in re.split(r'[,\s]+', user_query)])
-        gap = req - user
-        return ", ".join(gap).title() if gap else "Ready!"
-        
-    df['gap'] = df['skills'].apply(get_gap)
-    return df.sort_values(by='match_score', ascending=False)
+    # Mathematical Representation (Vector Space Model)
+    tfidf_matrix = tfidf.fit_transform(job_content.apply(clean_text))
+    user_vec = tfidf.transform([clean_text(user_input)])
+    
+    # Calculate Similarity Score (Cosine Similarity)
+    scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
+    df['match_percent'] = scores * 100
+    return df.sort_values(by='match_percent', ascending=False)
 
 # ──────────────────────────────────────────────────────────────
-#  3. SIDEBAR NAVIGATION
+#  4. USER INTERFACE
 # ──────────────────────────────────────────────────────────────
-df = load_enterprise_db()
-
 with st.sidebar:
-    st.markdown(f"<h1 style='color:{accent};'>TalentMatch Pro</h1>", unsafe_allow_html=True)
-    st.button("🌓 Toggle Theme", on_click=toggle_theme, use_container_width=True)
+    st.markdown("### ⚙️ System Settings")
+    st.button("🌓 Switch Theme", on_click=toggle_theme)
     st.markdown("---")
-    st.subheader("👤 User Profile")
-    u_skills = st.text_area("Skill Set", placeholder="e.g. Python, SQL, NLP", height=150)
-    u_role = st.text_input("Target Position", placeholder="e.g. AI Engineer")
-    run_btn = st.button("Generate Recommendations", type="primary", use_container_width=True)
-    st.markdown("---")
-    st.caption("Developed by Waqaas & Hira\nAror University Sukkur")
-
-# ──────────────────────────────────────────────────────────────
-#  4. MAIN DASHBOARD UI
-# ──────────────────────────────────────────────────────────────
-st.title("AI Career Intelligence Hub")
-
-# Hero Stats Section
-c1, c2, c3, c4 = st.columns(4)
-c1.markdown(f'<div class="stat-card"><div class="stat-label">Market Openings</div><div class="stat-val">{len(df)}</div></div>', unsafe_allow_html=True)
-c2.markdown(f'<div class="stat-card"><div class="stat-label">Top City</div><div class="stat-val">Karachi</div></div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="stat-card"><div class="stat-label">AI Demand</div><div class="stat-val">High</div></div>', unsafe_allow_html=True)
-c4.markdown(f'<div class="stat-card"><div class="stat-label">Avg. Stipend</div><div class="stat-val">35K</div></div>', unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-if run_btn and u_skills:
-    results = run_recommendation_engine(f"{u_role} {u_skills}", df)
+    st.header("Candidate Profile")
+    u_skills = st.text_area("List your skills", placeholder="e.g. Python, Machine Learning, SQL")
+    u_role = st.text_input("Target Job Title", placeholder="e.g. Data Scientist")
     
-    col_left, col_right = st.columns([1.5, 1])
+    find_jobs = st.button("Run AI Engine", type="primary")
+
+# Header Section
+st.title("TalentMatch AI")
+st.subheader("BS Artificial Intelligence | Semester 4 Project")
+st.write(f"**Students:** Waqaas Hussain & Hira Abdul Hafeez | **Aror University Sukkur**")
+
+if find_jobs and u_skills:
+    df = load_data()
+    results = calculate_recommendations(f"{u_role} {u_skills}", df)
     
-    with col_left:
-        st.subheader("🎯 Best Matched Opportunities")
-        for _, row in results.iterrows():
-            if row['match_score'] > 0:
-                st.markdown(f"""
-                <div class="job-card">
-                    <div class="company-logo">{row['icon']}</div>
-                    <div style="flex-grow: 1;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 style="margin:0;">{row['title']}</h3>
-                            <span class="match-tag">{int(row['match_score'])}% AI Match</span>
-                        </div>
-                        <p style="margin:2px 0; opacity:0.7; font-weight:600;">{row['company']} • {row['location']}</p>
-                        <div style="margin-top:10px; font-size:0.85rem;">
-                            <span style="opacity:0.6;">Required:</span> <code>{row['skills']}</code>
-                        </div>
-                        <div style="margin-top:5px; font-size:0.85rem; color:#EF4444;">
-                            <b>Gap:</b> {row['gap']}
-                        </div>
-                    </div>
+    st.markdown("### Recommended Opportunities")
+    
+    for i, row in results.iterrows():
+        if row['match_percent'] > 0:
+            st.markdown(f"""
+            <div class="job-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0;">{row['title']}</h3>
+                    <span class="match-score">{int(row['match_percent'])}% AI Match</span>
                 </div>
-                """, unsafe_allow_html=True)
-
-    with col_right:
-        st.subheader("📊 Market Distribution")
-        st.plotly_chart(px.pie(df, names='location', hole=0.6, color_discrete_sequence=[accent, "#3B82F6", "#6366F1"]), use_container_width=True)
-        st.plotly_chart(px.bar(results[results['match_score']>0], x='company', y='match_score', title="Match Accuracy by Company"), use_container_width=True)
-
+                <p style="margin:5px 0; opacity:0.8;">{row['company']} • {row['location']}</p>
+                <div style="margin-top:10px;">
+                    <code style="background:rgba(108,99,255,0.1); padding:4px 8px; border-radius:5px;">
+                        {row['skills']}
+                    </code>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 else:
-    st.info("👋 Input your professional profile on the left to start the AI recommendation engine.")
-    # Default Analytics
-    st.plotly_chart(px.histogram(df, x='location', color='company', title="Active Tech Hubs Across Pakistan"), use_container_width=True)
+    st.info("👋 Welcome! Please enter your skills in the sidebar to see the recommendation engine in action.")
 
-st.markdown("---")
-st.caption("BS AI Semester 4 | Instructor: Sir Abdul Haseeb | Aror University Sukkur")
+# Technical Logic Explanation (For the VIVA/Presentation)
+with st.expander("🔬 View Technical Logic (NLP Pipeline)"):
+    st.write("""
+    1. **Preprocessing**: Text is lowercased and cleaned using Regular Expressions (Regex).
+    2. **Tokenization**: Breaking text into individual words.
+    3. **TF-IDF Vectorization**: Converting text into numerical vectors based on word frequency.
+    4. **Cosine Similarity**: Calculating the 'angle' between your skills and job requirements to determine match percentage.
+    """)
