@@ -107,7 +107,7 @@ with st.sidebar:
     st.title("Control Center")
     selection = st.radio("Navigation", ["🏠 Home", "🔍 Job Recommendations", "📊 Market Analytics", "📄 Project Proposal"])
     st.markdown("---")
-    st.markdown(f"**Researcher:** \nWaqaas Hussain  \n*Aror University Sukkur*")
+    st.markdown(f"**Developed By :** \nWaqaas Hussain & Hira Abdul Hafeez  \n*Aror University Sukkur*")
 
 # ──────────────────────────────────────────────────────────────
 #  5. SECTION: HOME
@@ -127,10 +127,7 @@ if selection == "🏠 Home":
         Stop searching through irrelevant listings. Our AI analyzes the **semantic DNA** of your skill set and matches it against specific job requirements. 
         Whether you are a Data Scientist or a Cloud Architect, we find where you belong.
         """)
-        st.info("💡 **Pro-Tip:** List specific libraries (like PyTorch or React) for a higher match accuracy!")
-    with col2:
-        st.image("https://cdn-icons-png.flaticon.com/512/8074/8074470.png", width=300)
-
+       
 # ──────────────────────────────────────────────────────────────
 #  6. SECTION: JOB RECOMMENDATIONS (CORE ENGINE)
 # ──────────────────────────────────────────────────────────────
