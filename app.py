@@ -1,137 +1,74 @@
-# ============================================================
-#   AI-BASED JOB RECOMMENDATION SYSTEM (V1.0)
-#   Institution : Aror University Sukkur
-#   Students    : Waqaas Hussain & Hira Abdul Hafeez
-#   Techniques  : TF-IDF Vectorization & Cosine Similarity
-# ============================================================
-
 import streamlit as st
 import pandas as pd
 import numpy as np
-import re
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import MultiLabelBinarizer
 
-# ──────────────────────────────────────────────────────────────
-#  1. THEME MANAGEMENT (DARK & WHITE MODE)
-# ──────────────────────────────────────────────────────────────
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'dark'
+# 1. SETTINGS & UI
+st.set_page_config(page_title="ML Job Matcher", layout="wide")
+st.title("🤖 ML-Based Job Recommendation")
+st.write("Using **K-Nearest Neighbors (KNN)** instead of NLP Vectorization")
 
-def toggle_theme():
-    st.session_state.theme = 'white' if st.session_state.theme == 'dark' else 'dark'
-
-# UI Colors based on selection
-if st.session_state.theme == 'dark':
-    bg_color = "#0D0D1A"
-    text_color = "#E8E8F0"
-    card_bg = "#16213E"
-    border_color = "rgba(108,99,255,0.3)"
-else:
-    bg_color = "#F0F2F6"
-    text_color = "#1E293B"
-    card_bg = "#FFFFFF"
-    border_color = "#D1D5DB"
-
-st.markdown(f"""
-    <style>
-    .stApp {{ background-color: {bg_color}; color: {text_color}; }}
-    .job-card {{
-        background-color: {card_bg};
-        border: 1px solid {border_color};
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }}
-    .match-score {{ color: #43E97B; font-weight: bold; font-family: 'Courier New', monospace; }}
-    </style>
-""", unsafe_allow_html=True)
-
-# ──────────────────────────────────────────────────────────────
-#  2. LOCAL DATASET (Pakistani Tech Hubs)
-# ──────────────────────────────────────────────────────────────
+# 2. PREPARING ML DATASET
+# ML algorithms numbers par kaam karte hain, isliye hum skills ko "Binary Features" banayenge
 @st.cache_data
-def load_data():
-    data = [
-        {"title": "AI Research Intern", "company": "Systems Ltd", "location": "Lahore", "skills": "Python, Machine Learning, NLP, Scikit-learn", "desc": "Assisting in neural network training and data preprocessing."},
-        {"title": "Junior Data Scientist", "company": "Afiniti", "location": "Karachi", "skills": "SQL, Python, Statistics, Machine Learning", "desc": "Analyzing patterns using behavioral matching algorithms."},
-        {"id": 3, "title": "Web Dev Intern", "company": "Aror Solutions", "location": "Sukkur", "skills": "HTML, CSS, JavaScript, React, Git", "desc": "Developing responsive frontend components for local clients."},
-        {"title": "Cloud Associate", "company": "NetSol", "location": "Islamabad", "skills": "AWS, Docker, Linux, Python", "desc": "Designing scalable cloud-native infrastructures."},
-        {"title": "Junior ML Engineer", "company": "Folio3", "location": "Karachi", "skills": "Python, Django, Computer Vision, Git", "desc": "Integrating CV models into mobile applications."}
+def get_ml_data():
+    jobs = [
+        {"title": "AI Engineer", "skills_list": ["Python", "ML", "SQL"]},
+        {"title": "Web Developer", "skills_list": ["HTML", "CSS", "JS"]},
+        {"title": "Data Scientist", "skills_list": ["Python", "R", "ML"]},
+        {"title": "DevOps Engineer", "skills_list": ["Docker", "Linux", "Python"]},
+        {"title": "Frontend Expert", "skills_list": ["React", "HTML", "CSS"]}
     ]
-    return pd.DataFrame(data)
-
-# ──────────────────────────────────────────────────────────────
-#  3. NLP MATCHING ENGINE (TF-IDF & COSINE SIMILARITY)
-# ──────────────────────────────────────────────────────────────
-def calculate_recommendations(user_input, df):
-    # Data Cleaning
-    def clean_text(text):
-        return re.sub(r'[^a-z0-9\s]', '', text.lower())
-
-    # Feature Extraction
-    tfidf = TfidfVectorizer(stop_words='english')
-    # Combine relevant columns into a "bag of words"
-    job_content = df['title'] + " " + df['skills'] + " " + df['desc']
+    df = pd.DataFrame(jobs)
     
-    # Mathematical Representation (Vector Space Model)
-    tfidf_matrix = tfidf.fit_transform(job_content.apply(clean_text))
-    user_vec = tfidf.transform([clean_text(user_input)])
+    # Encoding: Skills ko 0 aur 1 mein convert karna (ML preprocessing)
+    mlb = MultiLabelBinarizer()
+    skill_matrix = mlb.fit_transform(df['skills_list'])
+    feature_names = mlb.classes_
     
-    # Calculate Similarity Score (Cosine Similarity)
-    scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
-    df['match_percent'] = scores * 100
-    return df.sort_values(by='match_percent', ascending=False)
+    return df, skill_matrix, mlb, feature_names
 
-# ──────────────────────────────────────────────────────────────
-#  4. USER INTERFACE
-# ──────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("### ⚙️ System Settings")
-    st.button("🌓 Switch Theme", on_click=toggle_theme)
-    st.markdown("---")
-    st.header("Candidate Profile")
-    u_skills = st.text_area("List your skills", placeholder="e.g. Python, Machine Learning, SQL")
-    u_role = st.text_input("Target Job Title", placeholder="e.g. Data Scientist")
-    
-    find_jobs = st.button("Run AI Engine", type="primary")
+df, skill_matrix, mlb, feature_names = get_ml_data()
 
-# Header Section
-st.title("TalentMatch AI")
-st.subheader("BS Artificial Intelligence | Semester 4 Project")
-st.write(f"**Students:** Waqaas Hussain & Hira Abdul Hafeez | **Aror University Sukkur**")
+# 3. TRAINING THE ML MODEL (KNN)
+# Hum "Brute" algorithm use kar rahe hain jo distance calculate karta hai
+model = NearestNeighbors(n_neighbors=2, algorithm='brute', metric='cosine')
+model.fit(skill_matrix)
 
-if find_jobs and u_skills:
-    df = load_data()
-    results = calculate_recommendations(f"{u_role} {u_skills}", df)
-    
-    st.markdown("### Recommended Opportunities")
-    
-    for i, row in results.iterrows():
-        if row['match_percent'] > 0:
-            st.markdown(f"""
-            <div class="job-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0;">{row['title']}</h3>
-                    <span class="match-score">{int(row['match_percent'])}% AI Match</span>
+# 4. SIDEBAR INPUTS
+st.sidebar.header("User Profile (ML Features)")
+selected_skills = st.sidebar.multiselect("Select Your Skills:", feature_names)
+
+if st.sidebar.button("Predict Best Job"):
+    if selected_skills:
+        # User input ko machine readable format mein convert karna
+        user_input_encoded = mlb.transform([selected_skills])
+        
+        # ML Prediction (Finding nearest neighbors)
+        distances, indices = model.kneighbors(user_input_encoded)
+        
+        st.subheader("ML Prediction Results:")
+        for i in range(len(indices[0])):
+            job_idx = indices[0][i]
+            # Distance ko similarity percentage mein convert karna
+            match_score = round((1 - distances[0][i]) * 100, 2)
+            
+            with st.container():
+                st.markdown(f"""
+                <div style="border:1px solid #4CAF50; padding:15px; border-radius:10px; margin-bottom:10px;">
+                    <h4>🎯 Job Match: {df.iloc[job_idx]['title']}</h4>
+                    <p><b>Confidence Score:</b> {match_score}%</p>
+                    <p><b>Required Skills:</b> {", ".join(df.iloc[job_idx]['skills_list'])}</p>
                 </div>
-                <p style="margin:5px 0; opacity:0.8;">{row['company']} • {row['location']}</p>
-                <div style="margin-top:10px;">
-                    <code style="background:rgba(108,99,255,0.1); padding:4px 8px; border-radius:5px;">
-                        {row['skills']}
-                    </code>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-else:
-    st.info("👋 Welcome! Please enter your skills in the sidebar to see the recommendation engine in action.")
+                """, unsafe_allow_html=True)
+    else:
+        st.warning("Please select at least one skill.")
 
-# Technical Logic Explanation (For the VIVA/Presentation)
-with st.expander("🔬 View Technical Logic (NLP Pipeline)"):
+# 5. ML LOGIC EXPLANATION
+with st.expander("How this ML Model works?"):
     st.write("""
-    1. **Preprocessing**: Text is lowercased and cleaned using Regular Expressions (Regex).
-    2. **Tokenization**: Breaking text into individual words.
-    3. **TF-IDF Vectorization**: Converting text into numerical vectors based on word frequency.
-    4. **Cosine Similarity**: Calculating the 'angle' between your skills and job requirements to determine match percentage.
+    - **One-Hot Encoding**: Humne text ko 0 aur 1 ki matrix mein badal diya.
+    - **KNN (K-Nearest Neighbors)**: Ye algorithm user ke data point aur jobs ke data points ke darmiyan 'Euclidean' ya 'Cosine' distance check karta hai.
+    - **Classification**: Jo jobs user ke sab se kareeb (nearest) hoti hain, wahi recommend hoti hain.
     """)
