@@ -16,8 +16,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. GLOBAL THEME & UI (Streamlit Deployment - Week 14)
-# ──────────────────────────────────────────────────────────────
+#  1. GLOBAL THEME & UI (Streamlit Deployment - Week 14
+# ──────────────────────────────────────────────────)────────────
 st.set_page_config(page_title="TalentMatch AI Pro", layout="wide")
 
 if 'theme' not in st.session_state:
