@@ -1,9 +1,9 @@
 # ============================================================
-#   AI-BASED JOB RECOMMENDATION SYSTEM (OUTLINE ALIGNED)
+#   AI-BASED JOB RECOMMENDATION SYSTEM (FINAL)
 #   Institution : Aror University Sukkur
 #   Students    : Waqaas Hussain & Hira Abdul Hafeez
 #   Course      : Programming for AI (Sir Abdul Haseeb)
-#   CLO Alignment: CLO-1 (Python), CLO-3 (ML & Data Science)
+#   Semester    : 4th (BS Artificial Intelligence)
 # ============================================================
 
 import streamlit as st
@@ -16,160 +16,162 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. GLOBAL THEME & UI (Streamlit Deployment - Week 14
-# ──────────────────────────────────────────────────)────────────
-st.set_page_config(page_title="TalentMatch AI Pro", layout="wide")
+#  1. GUI CONFIGURATION (Week 14: Streamlit)
+# ──────────────────────────────────────────────────────────────
+st.set_page_config(page_title="TalentMatch AI Pro", layout="wide", page_icon="🎯")
 
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'dark'
-
-def toggle_theme():
-    st.session_state.theme = 'white' if st.session_state.theme == 'dark' else 'dark'
-
-if st.session_state.theme == 'dark':
-    bg, text, card, accent = "#0F172A", "#F1F5F9", "#1E293B", "#10B981"
-else:
-    bg, text, card, accent = "#F8FAFC", "#1E293B", "#FFFFFF", "#059669"
-
-st.markdown(f"""
-    <style>
-    .stApp {{ background-color: {bg}; color: {text}; transition: 0.3s; font-family: 'Inter', sans-serif; }}
-    .job-card {{ background: {card}; border: 1px solid #334155; padding: 25px; border-radius: 15px; margin-bottom: 20px; }}
-    .hero-stat {{ background: linear-gradient(45deg, #064e3b, #065f46); padding: 20px; border-radius: 12px; text-align: center; color: white; }}
-    .match-val {{ color: {accent}; font-weight: 800; font-size: 1.3rem; }}
-    </style>
+# Professional Theme Styling
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+    .main { background-color: #f8fafc; }
+    .job-card {
+        background: white; padding: 25px; border-radius: 15px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        border-left: 5px solid #059669; margin-bottom: 20px;
+    }
+    .match-score { color: #059669; font-weight: 800; font-size: 1.2rem; }
+    .stat-box {
+        background: #064e3b; color: white; padding: 20px;
+        border-radius: 12px; text-align: center;
+    }
+</style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. DATASET & CLEANING (Pandas - Week 07 & 08)
+#  2. DATA COLLECTION & PREPROCESSING (Week 07 & 08)
 # ──────────────────────────────────────────────────────────────
-@st.cache_data
-def get_cleaned_data():
-    # Demonstrating Week 03: Dictionaries/Lists
-    raw_data = [
-        {"id": 1, "title": "AI Engineer", "company": "Systems Ltd", "location": "Lahore", "salary": 250000, "skills": "Python, Machine Learning, NLP, Scikit-learn"},
-        {"id": 2, "title": "Data Analyst", "company": "Afiniti", "location": "Karachi", "salary": 180000, "skills": "SQL, Python, Statistics, PowerBI"},
-        {"id": 3, "title": "Web Developer", "company": "Aror Solutions", "location": "Sukkur", "salary": 90000, "skills": "React, JavaScript, HTML, CSS, Django"},
-        {"id": 4, "title": "MLOps Intern", "company": "NetSol", "location": "Islamabad", "salary": 35000, "skills": "Docker, Kubernetes, AWS, Python, Linux"},
-        {"id": 5, "title": "Junior AI Dev", "company": "Folio3", "location": "Karachi", "salary": 120000, "skills": "Python, Computer Vision, Git, PyTorch"},
-    ]
-    df = pd.DataFrame(raw_data)
-    # Week 08 L1: Data Cleaning (Handling strings)
-    df['skills'] = df['skills'].apply(lambda x: x.lower())
-    return df
+class JobDataProcessor: # Week 06: Classes & Objects
+    @staticmethod
+    @st.cache_data
+    def load_and_clean():
+        # Step 1: Data Collection (Simulated CSV/Kaggle Dataset)
+        data = [
+            {"title": "AI Research Intern", "company": "Systems Ltd", "location": "Lahore", "salary": 35000, "skills": "Python, Machine Learning, NLP, Scikit-learn", "desc": "Assisting in model training and data preprocessing."},
+            {"title": "Junior Data Scientist", "company": "Afiniti", "location": "Karachi", "salary": 110000, "skills": "SQL, Python, Statistics, Machine Learning, R", "desc": "Behavioral matching AI for global interaction optimization."},
+            {"title": "AI Developer Intern", "company": "Aror Solutions", "location": "Sukkur", "id": 3, "salary": 20000, "skills": "Python, React, API Integration, Git", "desc": "Building AI-integrated web tools for regional industry."},
+            {"title": "Cloud Solutions Associate", "company": "NetSol", "location": "Islamabad", "salary": 95000, "skills": "AWS, Docker, Kubernetes, Linux, Python", "desc": "Designing scalable cloud architectures for automotive software."},
+            {"title": "Junior ML Engineer", "company": "Folio3", "location": "Karachi", "salary": 85000, "skills": "Python, Computer Vision, Git, PyTorch, Django", "desc": "Developing backends for AI-driven mobile applications."}
+        ]
+        df = pd.DataFrame(data)
+        # Step 2: Data Preprocessing (Cleaning & Normalization)
+        df['cleaned_skills'] = df['skills'].apply(lambda x: x.lower()) # Lambda/Map Week 04
+        return df
 
 # ──────────────────────────────────────────────────────────────
-#  3. THE ML ENGINE (TF-IDF & Cosine Similarity - Week 10-12)
+#  3. MODEL DESIGN: TF-IDF & SIMILARITY (Week 10: KNN/Similarity)
 # ──────────────────────────────────────────────────────────────
-class RecommenderEngine: # Week 06 L1: Classes & Objects
-    def __init__(self, df):
-        self.df = df
-        self.vectorizer = TfidfVectorizer(stop_words='english') # Week 07 L2: Sklearn
+def run_matching_engine(user_query, df):
+    # Step 3: Feature Extraction using TF-IDF
+    tfidf = TfidfVectorizer(stop_words='english')
+    # Combine relevant columns for content-based filtering
+    job_content = df['title'] + " " + df['skills'] + " " + df['desc']
+    matrix = tfidf.fit_transform(job_content.apply(lambda x: x.lower()))
+    
+    # Vectorize User Profile
+    user_vec = tfidf.transform([user_query.lower()])
+    
+    # Evaluate System Performance using Cosine Similarity
+    scores = cosine_similarity(user_vec, matrix).flatten()
+    df['match_score'] = scores * 100
+    
+    # Logic for Skill Gap Analysis (Comprehensions Week 03)
+    user_set = set(re.split(r'[,\s]+', user_query.lower()))
+    def find_gap(row_skills):
+        req = set([s.strip().lower() for s in row_skills.split(',')])
+        return list(req - user_set)
+    
+    df['gap'] = df['skills'].apply(find_gap)
+    return df.sort_values(by='match_score', ascending=False)
 
-    def get_recommendations(self, user_profile):
-        # Week 10 L1: Similarity Logic
-        content = self.df['title'] + " " + self.df['skills']
-        matrix = self.vectorizer.fit_transform(content)
-        user_vec = self.vectorizer.transform([user_profile.lower()])
-        
-        scores = cosine_similarity(user_vec, matrix).flatten()
-        self.df['match_score'] = scores * 100
-        
-        # Week 03 L1: Comprehensions (Finding missing skills)
-        user_list = set(re.split(r'[,\s]+', user_profile.lower()))
-        def get_gap(row_skills):
-            req = set([s.strip() for s in row_skills.split(',')])
-            return list(req - user_list)
-        
-        self.df['gap'] = self.df['skills'].apply(get_gap)
-        return self.df.sort_values(by='match_score', ascending=False)
-
 # ──────────────────────────────────────────────────────────────
-#  4. SIDEBAR NAVIGATION & INPUTS
+#  4. SIDEBAR & NAVIGATION (Step 4: Implementation)
 # ──────────────────────────────────────────────────────────────
-df = get_cleaned_data()
-engine = RecommenderEngine(df)
+df_main = JobDataProcessor.load_and_clean()
 
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=80)
     st.title("TalentMatch AI")
-    st.button("🌓 Switch Theme", on_click=toggle_theme)
     st.markdown("---")
     
-    # User Profile (CLO-1)
-    st.header("Candidate Profile")
-    name = st.text_input("Full Name", "Waqaas Hussain")
-    u_skills = st.text_area("Your Technical Skills", placeholder="e.g. Python, SQL, Statistics")
-    u_city = st.selectbox("Preferred City", ["Any"] + list(df['location'].unique()))
+    # User Input Collection
+    st.subheader("Your AI Profile")
+    u_name = st.text_input("Full Name", placeholder="Alex Johnson")
+    u_skills = st.text_area("Technical Skills", placeholder="e.g. Python, SQL, Statistics")
+    u_loc = st.selectbox("Target City", ["Any"] + list(df_main['location'].unique()))
     
-    # Week 04 L1: Functions (Triggering Search)
-    search_btn = st.button("Generate AI Match", type="primary")
+    search_btn = st.button("Generate Recommendations", type="primary")
+    
+    st.markdown("---")
+    st.write("**Authors:**")
+    st.caption("Waqaas Hussain & Hira Abdul Hafeez")
+    st.caption("BS AI - 4th Semester")
 
 # ──────────────────────────────────────────────────────────────
-#  5. MAIN DASHBOARD (Visualization - Week 08 & 09)
+#  5. TESTING & EVALUATION (Step 5: Testing)
 # ──────────────────────────────────────────────────────────────
 st.title("AI Career Intelligence Hub")
-st.caption(f"Aror University Sukkur | Semester 4 | Instructor: Sir Abdul Haseeb")
+st.write(f"Instructor: **Sir Abdul Haseeb** | Aror University Sukkur")
 
-# Hero Section (Week 08: Matplotlib Visualization)
+# Dashboard Analytics (Week 08 & 09: Visualization)
 c1, c2, c3 = st.columns(3)
-with c1: st.markdown(f'<div class="hero-stat"><h5>Market Jobs</h5><h2>{len(df)}</h2></div>', unsafe_allow_html=True)
-with c2: st.markdown(f'<div class="hero-stat"><h5>Avg Salary (PKR)</h5><h2>136K</h2></div>', unsafe_allow_html=True)
-with c3: st.markdown(f'<div class="hero-stat"><h5>Top Domain</h5><h2>AI/ML</h2></div>', unsafe_allow_html=True)
+with c1: st.markdown(f'<div class="stat-box"><h5>Total Jobs</h5><h2>{len(df_main)}</h2></div>', unsafe_allow_html=True)
+with c2: st.markdown(f'<div class="stat-box"><h5>AI Intensity</h5><h2>High</h2></div>', unsafe_allow_html=True)
+with c3: st.markdown(f'<div class="stat-box"><h5>Top Region</h5><h2>Sindh/Punjab</h2></div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 if search_btn and u_skills:
-    # Part A: The Results (Week 10-12 Logic)
-    results = engine.get_recommendations(u_skills)
-    if u_city != "Any":
-        results = results[results['location'] == u_city]
+    results = run_matching_engine(u_skills, df_main)
     
-    tab1, tab2 = st.tabs(["🎯 AI Matches", "📊 Market Analytics"])
+    # Filter by Location
+    if u_loc != "Any":
+        results = results[results['location'] == u_loc]
+    
+    tab1, tab2 = st.tabs([" Job Reccomandation System ", "📊 Market Trends"])
     
     with tab1:
+        st.subheader(f"Recommendations for {u_name}")
         for _, row in results.iterrows():
             if row['match_score'] > 0:
                 st.markdown(f"""
                 <div class="job-card">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h3 style="margin:0;">{row['title']}</h3>
-                        <span class="match-val">{int(row['match_score'])}% Compatibility</span>
+                        <span class="match-score">{int(row['match_score'])}% Match</span>
                     </div>
-                    <p style="margin:5px 0; opacity:0.8;"><b>{row['company']}</b> • {row['location']}</p>
-                    <div style="margin-top:10px;">
-                        <span style="font-size:0.85rem; color:#64748b;"><b>Required Skills:</b> {row['skills']}</span>
-                    </div>
-                    <div style="margin-top:10px; color:#ef4444; font-size:0.85rem;">
-                        ⚠️ <b>Skill Gap:</b> {', '.join(row['gap']).title() if row['gap'] else 'None! Ready to apply.'}
+                    <p style="margin:5px 0; color:#64748b;"><b>{row['company']}</b> • {row['location']}</p>
+                    <p style="font-size:0.9rem; margin-top:10px;">{row['desc']}</p>
+                    <div style="margin-top:10px; color:#ef4444; font-size:0.85rem; font-weight:600;">
+                         Skill Gap: {', '.join(row['gap']).title() if row['gap'] else 'None! Perfect Fit.'}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-
+    
     with tab2:
-        # Week 09: Seaborn Visualization
-        st.subheader("Data Science Insights")
-        col_left, col_right = st.columns(2)
+        # Week 09: Seaborn and Matplotlib Visualization
+        st.subheader("Data Science Metrics")
+        col_a, col_b = st.columns(2)
         
-        with col_left:
-            # Matplotlib Plot
-            fig, ax = plt.subplots()
-            sns.barplot(data=df, x='location', y='salary', ax=ax, palette='viridis')
-            ax.set_title("Salary Distribution by City")
-            st.pyplot(fig)
+        with col_a:
+            fig1, ax1 = plt.subplots()
+            sns.barplot(data=df_main, x='location', y='salary', palette='Greens_d', ax=ax1)
+            ax1.set_title("Salary Benchmarks by City")
+            st.pyplot(fig1)
             
-        with col_right:
-            # Seaborn Heatmap / Pairplot equivalent
+        with col_b:
             fig2, ax2 = plt.subplots()
-            df_numeric = df[['salary']].copy()
-            sns.heatmap(df_numeric.corr(), annot=True, ax=ax2)
+            # Heatmap of correlation (Week 09: Seaborn II)
+            sns.heatmap(df_main[['salary']].corr(), annot=True, cmap='Greens', ax=ax2)
+            ax2.set_title("Feature Correlation")
             st.pyplot(fig2)
 
 else:
-    # Week 10 L1: Background Visualization
-    st.info("👋 Input your profile skills in the sidebar to run the Recommendation Engine.")
-    fig_hist = px.histogram(df, x='location', y='salary', color='company', barmode='group', title="Market Overview")
+    st.info("👋 Welcome! Fill in your skills in the sidebar to see the Recommendation Engine in action.")
+    # Default Visualization
+    fig_hist = px.histogram(df_main, x='location', color='company', title="Job Distribution Across Pakistan")
     st.plotly_chart(fig_hist, use_container_width=True)
 
 st.markdown("---")
-st.caption("BS AI | Semester 4 Project | Demonstrating Week 02-14 Syllabus Concepts")
+st.caption("BS AI Semester 4 | Programming for AI | Final Project Submission")
