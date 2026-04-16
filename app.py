@@ -1,5 +1,5 @@
 # ============================================================
-#   AI-BASED JOB RECOMMENDATION SYSTEM (Pro Version)
+#   AI-BASED JOB RECOMMENDATION SYSTEM 
 #   Author      : Waqaas Hussain
 #   Institution : Aror University Sukkur
 #   Algorithm   : TF-IDF Vectorization + Cosine Similarity
@@ -90,7 +90,7 @@ with st.sidebar:
 
 # --- DASHBOARD ---
 if menu == "🏠 Dashboard":
-    st.title("Next-Gen Job Recommendation System")
+    st.title(" Job Recommendation System")
     st.info("Welcome, Waqaas! Use the AI engine to find jobs that match your technical profile.")
     
     col1, col2, col3 = st.columns(3)
