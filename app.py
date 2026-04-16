@@ -1,3 +1,11 @@
+# ============================================================
+#   AI-BASED JOB RECOMMENDATION SYSTEM (FINAL)
+#   Institution : Aror University Sukkur
+#   Students    : Waqaas Hussain & Hira Abdul Hafeez
+#   Logic       : TF-IDF Vectorization + Cosine Similarity
+#   Subject     : Programming for AI (Sir Abdul Haseeb)
+# ============================================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -8,11 +16,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. GUI DESIGN 
+#  1. GUI DESIGN (As per Proposal Step 4)
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="AI JOB RECCOMANDATION SYSTEM ", layout="wide", page_icon="")
+st.set_page_config(page_title="TalentMatch AI Pro", layout="wide", page_icon="🎯")
 
-
+# Professional Theme Styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
@@ -31,7 +39,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. DATA COLLECTION & PREPROCESSING 
+#  2. DATA COLLECTION & PREPROCESSING (Proposal Step 1 & 2)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def get_job_dataset():
@@ -81,7 +89,7 @@ def run_ai_engine(user_query, df):
     return df.sort_values(by='match_score', ascending=False)
 
 # ──────────────────────────────────────────────────────────────
-#  4. IMPLEMENTATION & GUI 
+#  4. IMPLEMENTATION & GUI (Proposal Step 4)
 # ──────────────────────────────────────────────────────────────
 df_main = get_job_dataset()
 
@@ -101,7 +109,7 @@ with st.sidebar:
     st.caption("Developed by:\nWaqaas Hussain & Hira Abdul Hafeez\nAror University Sukkur")
 
 # ──────────────────────────────────────────────────────────────
-#  5. RESULTS & EVALUATION 
+#  5. RESULTS & EVALUATION (Proposal Step 5)
 # ──────────────────────────────────────────────────────────────
 st.title("AI Career Intelligence Hub")
 st.write(f"Course: **Programming for AI** | Instructor: **Sir Abdul Haseeb**")
@@ -120,7 +128,7 @@ if search_btn and u_skills:
     if u_loc != "Any":
         results = results[results['location'] == u_loc]
     
-    tab1, tab2 = st.tabs([" AI Job Reccomandation system ", "📊 Market Visualization"])
+    tab1, tab2 = st.tabs(["🎯 AI Job Matches", "📊 Market Visualization"])
     
     with tab1:
         st.subheader(f"Best Matches for {u_name}")
@@ -135,7 +143,7 @@ if search_btn and u_skills:
                     <p style="margin:5px 0; color:#64748b;"><b>{row['company']}</b> • {row['location']}</p>
                     <p style="font-size:0.9rem; margin-top:10px;">{row['desc']}</p>
                     <div style="margin-top:10px; color:#EF4444; font-size:0.85rem; font-weight:600;">
-                         Skill Gap: {row['gap']}
+                        ⚠️ Skill Gap: {row['gap']}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -156,9 +164,9 @@ if search_btn and u_skills:
             ax2.set_title("Feature Correlation")
             st.pyplot(fig2)
 else:
-    st.info(" Welcome! Fill in your skills in the sidebar and click the button to see AI recommendations.")
+    st.info("👋 Welcome! Fill in your skills in the sidebar and click the button to see AI recommendations.")
     # Show market map by default
     st.plotly_chart(px.histogram(df_main, x='location', title="Job Distribution Across Tech Hubs"), use_container_width=True)
 
 st.markdown("---")
-st.caption("BS AI Semester 4| ")
+st.caption("BS AI Semester 4 | Final Project Submission | Proposal Aligned")
