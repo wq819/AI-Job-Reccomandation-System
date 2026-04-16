@@ -1,11 +1,3 @@
-# ============================================================
-#   AI-BASED JOB RECOMMENDATION SYSTEM 
-#   Institution : Aror University Sukkur
-#   Students    : Waqaas Hussain & Hira Abdul Hafeez
-#   Logic       : TF-IDF Vectorization + Cosine Similarity
-#   Subject     : Programming for AI (Sir Abdul Haseeb)
-# ============================================================
-
 import streamlit as st
 import pandas as pd
 import numpy as np
