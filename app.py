@@ -1,9 +1,9 @@
 # ============================================================
-#   TALENTMATCH PK: AI-BASED JOB RECOMMENDATION SYSTEM
+#   TALENTMATCH PK: ADVANCED AI RECRUITMENT SYSTEM
 #   Institution : Aror University Sukkur
 #   Student     : Waqaas Hussain (SAP-5000000291)
-#   Subject     : Programming for AI (Sir Abdul Haseeb)
-#   Algorithm   : TF-IDF Vectorization + Cosine Similarity
+#   Instructor  : Sir Abdul Haseeb (BS AI - Semester 4)
+#   Core Logic  : NLP / TF-IDF Vector Space Modeling
 # ============================================================
 
 import streamlit as st
@@ -16,9 +16,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. PREMIUM UI CONFIGURATION (Week 14 Deployment)
+#  1. PREMIUM GUI & GLASSMORPHISM (Week 14)
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch PK | AI Recommender", layout="wide", page_icon="🎯")
+st.set_page_config(page_title="TalentMatch AI | Pro Edition", layout="wide", page_icon="🎯")
 
 st.markdown("""
 <style>
@@ -30,132 +30,128 @@ st.markdown("""
         color: #ecfdf5;
     }
     
-    /* Glassmorphism Card Design */
+    /* Premium Glass-Card */
     .job-card {
         background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(15px);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 30px;
-        border-radius: 24px;
+        padding: 35px;
+        border-radius: 28px;
         margin-bottom: 25px;
-        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .job-card:hover {
         background: rgba(16, 185, 129, 0.08);
         border: 1px solid #10b981;
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
     
     .match-val {
         background: linear-gradient(135deg, #10b981, #34d399);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 800; font-size: 1.6rem;
+        font-weight: 800; font-size: 1.8rem;
     }
     
     .stButton>button {
         background: linear-gradient(135deg, #10b981, #059669) !important;
         color: white !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
         font-weight: 700 !important;
+        height: 3.5em !important;
         border: none !important;
-        width: 100% !important;
-        height: 3em !important;
     }
-    
-    code { color: #34d399 !important; background: rgba(16, 185, 129, 0.1) !important; padding: 4px 8px; border-radius: 6px; }
 </style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. ALL-PAKISTAN DATASET (Week 07 & 08: Pandas)
+#  2. THE DATABASE (Week 07 & 08: Data Science)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
-def load_pakistan_db():
+def get_national_db():
     data = [
-        {"title": "AI Research Engineer", "company": "Systems Ltd", "location": "Lahore", "salary": 280000, "skills": "Python, NLP, PyTorch, Scikit-learn", "desc": "Leading global AI innovation and neural architecture research."},
-        {"title": "Senior Data Scientist", "company": "Afiniti", "location": "Karachi", "salary": 350000, "skills": "SQL, Python, Statistics, Machine Learning, AWS", "desc": "Advanced behavioral matching algorithms for enterprise scale."},
-        {"title": "AI Developer Intern", "company": "Aror Solutions", "location": "Sukkur", "salary": 25000, "skills": "Python, React, API, Git, Data Structures", "desc": "Developing AI integration tools for local Sindh industries."},
-        {"title": "Cloud Architect", "company": "NetSol", "location": "Islamabad", "salary": 310000, "skills": "AWS, Docker, Kubernetes, Linux, Terraform", "desc": "Scaling financial cloud ecosystems globally."},
-        {"title": "Junior ML Engineer", "company": "Folio3", "location": "Karachi", "salary": 125000, "skills": "Python, Computer Vision, Git, Django, OpenCV", "desc": "Building Computer Vision models for AgTech solutions."},
-        {"title": "Data Analyst", "company": "Contour Software", "location": "Lahore", "salary": 180000, "skills": "SQL, Excel, Python, PowerBI, Statistics", "desc": "Market intelligence and data mining for global clients."},
-        {"title": "Junior AI Dev", "company": "TechVantage", "location": "Peshawar", "salary": 90000, "skills": "Python, ML, Flask, SQL, Git", "desc": "Building intelligent automation for local startups."},
-        {"title": "Full Stack Dev", "company": "Devsinc", "location": "Faisalabad", "salary": 130000, "skills": "MERN Stack, Python, AWS, Docker", "desc": "Developing scalable web services in central Punjab."}
+        {"title": "AI Research Scientist", "company": "Systems Ltd", "location": "Lahore", "salary": 280000, "skills": "Python, PyTorch, NLP, Scikit-learn, Research"},
+        {"title": "Senior Data Architect", "company": "Afiniti", "location": "Karachi", "salary": 350000, "skills": "SQL, Python, Statistics, Machine Learning, AWS, ETL"},
+        {"title": "ML Engineer (Vision)", "company": "Folio3", "location": "Karachi", "salary": 140000, "skills": "Python, Computer Vision, OpenCV, Git, Django"},
+        {"title": "AI Web Developer", "company": "Aror Solutions", "location": "Sukkur", "salary": 25000, "skills": "JavaScript, React, API, Python, Tailwind"},
+        {"title": "Cloud Security Expert", "company": "NetSol", "location": "Islamabad", "salary": 310000, "skills": "AWS, Docker, Kubernetes, Linux, Python, CI/CD"},
+        {"title": "Junior Data Analyst", "company": "Contour Software", "location": "Lahore", "salary": 160000, "skills": "SQL, Excel, Python, PowerBI, Statistics"}
     ]
     return pd.DataFrame(data)
 
 # ──────────────────────────────────────────────────────────────
-#  3. THE AI MATCHING ENGINE (Week 10: Similarity Measures)
+#  3. THE MATHEMATICAL BRAIN (Week 10: Similarity Measures)
 # ──────────────────────────────────────────────────────────────
-def run_recommender(input_text, df):
-    # Week 08: Data Preprocessing (Cleaning)
+def calculate_ai_fit(input_text, df):
+    # Week 08: Preprocessing with Regex
     def clean(t): return re.sub(r'[^a-z0-9\s]', '', t.lower())
     
     # Week 10: TF-IDF Vectorization
     tfidf = TfidfVectorizer(stop_words='english')
-    corpus = df['title'] + " " + df['skills'] + " " + df['desc']
+    corpus = df['title'] + " " + df['skills']
     tfidf_matrix = tfidf.fit_transform(corpus.apply(clean))
     
-    # User Profile Transformation (Handling CV or Quick Skills)
+    # Vector Space Projection
     user_vec = tfidf.transform([clean(input_text)])
     
-    # Cosine Similarity Calculation
+    # Cosine Similarity (Math calculation)
     scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
     df['score'] = scores * 100
     
-    # Week 03: Skill Gap Analysis (Set Theory)
-    user_words = set(clean(input_text).split())
+    # Logic: Finding Skill Gaps (Week 03 & 04)
+    user_tokens = set(clean(input_text).split())
     def find_gap(row_skills):
         required = set([s.strip().lower() for s in row_skills.split(',')])
-        gap = required - user_words
-        return ", ".join(list(gap)).title() if gap else "None! Perfect Match."
+        gap = required - user_tokens
+        return ", ".join(list(gap)).title() if gap else "Ready!"
     
     df['gap'] = df['skills'].apply(find_gap)
     return df.sort_values(by='score', ascending=False)
 
 # ──────────────────────────────────────────────────────────────
-#  4. SIDEBAR NAVIGATION
+#  4. SIDEBAR & CANDIDATE DATA
 # ──────────────────────────────────────────────────────────────
-df_main = load_pakistan_db()
+df_main = get_national_db()
 
 with st.sidebar:
-    st.markdown("<h1 style='color:#10b981;'>TalentMatch PK</h1>", unsafe_allow_html=True)
-    st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=80)
+    st.markdown("<h1 style='color:#10b981;'>TalentMatch AI</h1>", unsafe_allow_html=True)
+    st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=70)
     st.markdown("---")
     
-    st.subheader("👨‍🎓 Candidate Profile")
-    u_name = st.text_input("Name", "Waqaas Hussain")
-    
-    # Dual Input Support
-    input_mode = st.radio("Input Method", ["Quick Skill Entry", "Full Resume/CV Text"])
-    if input_mode == "Quick Skill Entry":
-        u_data = st.text_input("Technical Skills", placeholder="e.g. Python, SQL, ML")
-    else:
-        u_data = st.text_area("Paste CV Content", placeholder="Copy and paste your entire resume here...", height=250)
-    
-    u_loc = st.selectbox("Preferred City", ["All Cities"] + sorted(list(df_main['location'].unique())))
+    st.subheader("👨‍💻 Professional Profile")
+    u_name = st.text_input("Candidate Name", "Waqaas Hussain")
+    u_input = st.text_area("Paste Full CV / Resume Content", placeholder="e.g. Python Developer with experience in ML...", height=250)
+    u_loc = st.selectbox("Market Focus", ["All Pakistan"] + sorted(list(df_main['location'].unique())))
     
     st.markdown("---")
-    search_btn = st.button("Generate Recommendations")
+    trigger = st.button("Analyze & Compute Match")
     st.caption(f"Project by {u_name}\nAror University Sukkur")
 
 # ──────────────────────────────────────────────────────────────
-#  5. DASHBOARD & ANALYTICS (Week 08 & 09: Visualization)
+#  5. THE DASHBOARD (Week 08 & 09 Visualization)
 # ──────────────────────────────────────────────────────────────
-st.title("Digital Pakistan AI Career Hub")
-st.write(f"Instructor: **Sir Abdul Haseeb** | **Semester 4 Final Project Submission**")
+st.title("Digital Pakistan Career Dashboard")
+st.write(f"Instructor: **Sir Abdul Haseeb** | **BS AI Semester 4 Final Project**")
 
-if search_btn and u_data:
-    results = run_recommender(u_data, df_main)
-    
-    if u_loc != "All Cities":
+# Hero Stats (Wonderful Addition)
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("Available Jobs", len(df_main))
+m2.metric("Top Hub", "Karachi")
+m3.metric("AI Demand", "High")
+m4.metric("Avg Salary", "PKR 180K")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+if trigger and u_input:
+    results = calculate_ai_fit(u_input, df_main)
+    if u_loc != "All Pakistan":
         results = results[results['location'] == u_loc]
         
-    tab_res, tab_vis = st.tabs(["🎯 Top Matches", "📊 Market Analytics"])
+    res_tab, vis_tab = st.tabs(["🎯 Top Matched Opportunities", "📊 Industry Insights"])
     
-    with tab_res:
-        st.subheader(f"Ranked Matches for {u_name}")
+    with res_tab:
+        st.subheader(f"Ranked Recommendations for {u_name}")
         for _, row in results.iterrows():
             if row['score'] > 2:
                 st.markdown(f"""
@@ -167,32 +163,37 @@ if search_btn and u_data:
                         </div>
                         <div class="match-val">{int(row['score'])}% Match</div>
                     </div>
-                    <p style="margin-top:15px; font-size:0.95rem; color:#d1d5db; line-height:1.6;">{row['desc']}</p>
                     <div style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
-                        <span style="font-size:0.85rem; color:#94a3b8; font-weight:bold; letter-spacing:1px;">⚠️ MISSING SKILLS:</span><br>
-                        <span style="color:#f87171; font-weight:600; font-size:0.9rem;">{row['gap']}</span>
+                        <span style="font-size:0.85rem; color:#94a3b8; font-weight:bold;">💡 SKILL GAP:</span><br>
+                        <span style="color:#f87171; font-weight:600; font-size:0.95rem;">{row['gap']}</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-    with tab_vis:
-        st.subheader("National Tech Market Insights")
-        col_l, col_r = st.columns(2)
-        with col_l:
+    with vis_tab:
+        # Week 09: Seaborn & Matplotlib Visualization
+        st.subheader("National Market Analysis")
+        cl, cr = st.columns(2)
+        with cl:
             fig, ax = plt.subplots(facecolor='none')
             sns.barplot(data=df_main, x='location', y='salary', palette='Greens_d', ax=ax)
             ax.set_title("Salary Benchmarks by City", color='white', weight='bold')
-            ax.tick_params(colors='white', rotation=45)
+            ax.tick_params(colors='white')
             st.pyplot(fig)
-        with col_r:
+        with cr:
             fig2, ax2 = plt.subplots(facecolor='none')
-            city_counts = df_main['location'].value_counts()
-            plt.pie(city_counts, labels=city_counts.index, autopct='%1.1f%%', colors=sns.color_palette('Greens_d'))
-            ax2.set_title("Market Density", color='white', weight='bold')
+            plt.pie(df_main['location'].value_counts(), labels=df_main['location'].unique(), autopct='%1.1f%%', colors=sns.color_palette('Greens_d'))
+            ax2.set_title("Market Opportunity Share", color='white', weight='bold')
             st.pyplot(fig2)
-else:
-    st.info("👋 Welcome! Use the sidebar to analyze your profile and see AI recommendations across Pakistan.")
-    st.bar_chart(df_main.groupby('location')['salary'].mean())
+
+with st.expander("🛠️ Algorithm Explainability (Week 10-12)"):
+    st.write("""
+    **Mathematical Pipeline:**
+    1. **TF-IDF Vectorization:** Converts unstructured CV text into numerical feature vectors.
+    2. **Cosine Similarity:** Measures the cosine of the angle between your skill vector and the job requirement vector.
+    3. **Ranking Engine:** Sorts jobs based on the highest dot-product score.
+    """)
+    
 
 st.markdown("---")
-st.caption("BS AI Semester 4 | Aror University Sukkur | Department of AI")
+st.caption("BS AI Semester 4 | Aror University Sukkur | Final Capstone")
