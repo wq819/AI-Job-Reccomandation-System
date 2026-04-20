@@ -3,7 +3,7 @@
 
 ## 📌 About
 AI-powered job recommendation system using TF-IDF Vectorization and Cosine Similarity.
-Built with Python + Streamlit. Includes 30 real-world job listings across 10+ categories.
+Built with Python + Streamlit. Includes  real-world job listings across 10+ categories.
 
 ## ✅ Features
 - Skill-based job matching using Machine Learning
