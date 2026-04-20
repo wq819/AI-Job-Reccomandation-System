@@ -131,7 +131,7 @@ with st.sidebar:
 # ──────────────────────────────────────────────────────────────
 #  5. THE DASHBOARD 
 # ──────────────────────────────────────────────────────────────
-st.title("Digital Pakistan Career Dashboard")
+st.title("Job Reccomandation System ")
 st.write(f"Instructor: **Sir Abdul Haseeb** | **BS AI Semester 4 Final Project**")
 
 
