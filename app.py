@@ -16,7 +16,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. PREMIUM GUI & GLASSMORPH
+#  1. PREMIUM GUI 
 # ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Job Reccomandation System ", layout="wide", page_icon="🎯")
 
@@ -84,10 +84,10 @@ def get_national_db():
 #  3. THE MATHEMATICAL BRAIN 
 # ──────────────────────────────────────────────────────────────
 def calculate_ai_fit(input_text, df):
-     Preprocessing with Regex
+    # Preprocessing with Regex
     def clean(t): return re.sub(r'[^a-z0-9\s]', '', t.lower())
     
-     TF-IDF Vectorization
+    # TF-IDF Vectorization
     tfidf = TfidfVectorizer(stop_words='english')
     corpus = df['title'] + " " + df['skills']
     tfidf_matrix = tfidf.fit_transform(corpus.apply(clean))
