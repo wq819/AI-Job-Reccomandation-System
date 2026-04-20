@@ -1,4 +1,4 @@
-# 💼 AI-Based Job Recommendation System
+# AI-Based Job Recommendation System
 **Prepared by:** Waqaas Hussain | **Subject:** Programming for AI
 
 ## 📌 About
@@ -14,9 +14,9 @@ Built with Python + Streamlit. Includes 30 real-world job listings across 10+ ca
 - Download results as CSV
 - 3-page navigation (Home, Analytics, How It Works)
 
-## 🚀 Run Locally
+##  Run Locally
 ```bash
-pip install -r requirements.txt
+ -r requirements.txt
 streamlit run app.py
 ```
 
