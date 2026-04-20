@@ -9,7 +9,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
-import pdfplumber
+import pdfplumber # For PDF Parsing
 from sentence_transformers import SentenceTransformer, util # Week 13: ML Overview
 from sklearn.metrics.pairwise import cosine_similarity
 
