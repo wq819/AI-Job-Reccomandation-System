@@ -1,9 +1,9 @@
 # ============================================================
-#   TALENTMATCH PK: ADVANCED AI RECRUITMENT SYSTEM
+#   Job Reccomandation System 
 #   Institution : Aror University Sukkur
 #   Student     : Waqaas Hussain (SAP-5000000291)
 #   Instructor  : Sir Abdul Haseeb (BS AI - Semester 4)
-#   Core Logic  : NLP / TF-IDF Vector Space Modeling
+#   
 # ============================================================
 
 import streamlit as st
@@ -16,9 +16,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. PREMIUM GUI & GLASSMORPHISM (Week 14)
+#  1. PREMIUM GUI & GLASSMORPH
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch AI | Pro Edition", layout="wide", page_icon="🎯")
+st.set_page_config(page_title="Job Reccomandation System ", layout="wide", page_icon="🎯")
 
 st.markdown("""
 <style>
@@ -66,7 +66,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. THE DATABASE (Week 07 & 08: Data Science)
+#  2. THE DATABASE 
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def get_national_db():
@@ -81,13 +81,13 @@ def get_national_db():
     return pd.DataFrame(data)
 
 # ──────────────────────────────────────────────────────────────
-#  3. THE MATHEMATICAL BRAIN (Week 10: Similarity Measures)
+#  3. THE MATHEMATICAL BRAIN 
 # ──────────────────────────────────────────────────────────────
 def calculate_ai_fit(input_text, df):
-    # Week 08: Preprocessing with Regex
+     Preprocessing with Regex
     def clean(t): return re.sub(r'[^a-z0-9\s]', '', t.lower())
     
-    # Week 10: TF-IDF Vectorization
+     TF-IDF Vectorization
     tfidf = TfidfVectorizer(stop_words='english')
     corpus = df['title'] + " " + df['skills']
     tfidf_matrix = tfidf.fit_transform(corpus.apply(clean))
@@ -95,11 +95,11 @@ def calculate_ai_fit(input_text, df):
     # Vector Space Projection
     user_vec = tfidf.transform([clean(input_text)])
     
-    # Cosine Similarity (Math calculation)
+    
     scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
     df['score'] = scores * 100
     
-    # Logic: Finding Skill Gaps (Week 03 & 04)
+    
     user_tokens = set(clean(input_text).split())
     def find_gap(row_skills):
         required = set([s.strip().lower() for s in row_skills.split(',')])
@@ -129,12 +129,12 @@ with st.sidebar:
     st.caption(f"Project by {u_name}\nAror University Sukkur")
 
 # ──────────────────────────────────────────────────────────────
-#  5. THE DASHBOARD (Week 08 & 09 Visualization)
+#  5. THE DASHBOARD 
 # ──────────────────────────────────────────────────────────────
 st.title("Digital Pakistan Career Dashboard")
 st.write(f"Instructor: **Sir Abdul Haseeb** | **BS AI Semester 4 Final Project**")
 
-# Hero Stats (Wonderful Addition)
+
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Available Jobs", len(df_main))
 m2.metric("Top Hub", "Karachi")
@@ -196,4 +196,4 @@ with st.expander("🛠️ Algorithm Explainability (Week 10-12)"):
     
 
 st.markdown("---")
-st.caption("BS AI Semester 4 | Aror University Sukkur | Final Capstone")
+st.caption("BS AI Semester 4 | Aror University Sukkur |")
