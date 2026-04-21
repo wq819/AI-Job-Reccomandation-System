@@ -4,3 +4,4 @@ numpy
 scikit-learn
 sentence-transformers
 pdfplumber
+import plotly.express as px
