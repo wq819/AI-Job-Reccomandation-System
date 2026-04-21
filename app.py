@@ -1,132 +1,212 @@
 # ============================================================
-#   TALENTMATCH AI PRO (ENTERPRISE EDITION)
+#   Job Recommendation System
+#   Institution : Aror University Sukkur
 #   Student     : Waqaas Hussain (SAP-5000000291)
 #   Instructor  : Sir Abdul Haseeb (BS AI - Semester 4)
-#   Core Logic  : BERT Transformers + PDF Parsing + Session Auth
+#   Core Logic  : NLP / TF-IDF Vector Space Modeling
 # ============================================================
 
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.express as px
 import re
-import pdfplumber # For PDF Parsing
-from sentence_transformers import SentenceTransformer, util # Week 13: ML Overview
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # ──────────────────────────────────────────────────────────────
-#  1. SESSION & LOGIN SYSTEM (Requirement 4)
+#  1. GUI 
 # ──────────────────────────────────────────────────────────────
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
+st.set_page_config(page_title="TalentMatch AI | Pro Edition", layout="wide", page_icon="🎯")
 
-def login_system():
-    if not st.session_state.logged_in:
-        st.markdown("### 🔐 Secure Student Login")
-        user = st.text_input("Username (SAP ID)")
-        pwd = st.text_input("Password", type="password")
-        if st.button("Login"):
-            if user and pwd: # Simplified for Demo
-                st.session_state.logged_in = True
-                st.rerun()
-        st.stop()
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+    html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    .stApp {
+        background: radial-gradient(circle at top right, #064e3b, #022c22, #000000);
+        color: #ecfdf5;
+    }
+    
+    /* Premium Glass-Card */
+    .job-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 35px;
+        border-radius: 28px;
+        margin-bottom: 25px;
+        transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .job-card:hover {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid #10b981;
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .match-val {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800; font-size: 1.8rem;
+    }
+    
+    .stButton>button {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        color: white !important;
+        border-radius: 14px !important;
+        font-weight: 700 !important;
+        height: 3.5em !important;
+        border: none !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. UI & TRANSFORMER MODEL INITIALIZATION
-# ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch Pro | BERT", layout="wide")
-
-@st.cache_resource
-def load_bert_model():
-    # Week 13: Using Pre-trained Transformer models (BERT)
-    return SentenceTransformer('all-MiniLM-L6-v2')
-
-model = load_bert_model()
-
-# ──────────────────────────────────────────────────────────────
-#  3. RESUME UPLOAD & PDF PARSING (Requirement 3)
-# ──────────────────────────────────────────────────────────────
-def extract_data_from_pdf(file):
-    with pdfplumber.open(file) as pdf:
-        text = ""
-        for page in pdf.pages:
-            text += page.extract_text()
-    return text
-
-# ──────────────────────────────────────────────────────────────
-#  4. MOCK API DATASET (Requirement 1 & 5)
+#  2. THE DATABASE 
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
-def fetch_mock_api_jobs():
-    # Simulating data that would come from a Real Job API
+def get_national_db():
     data = [
-        {"title": "Senior AI Engineer", "company": "Systems Ltd", "loc": "Lahore", "skills": "Python, BERT, PyTorch", "url": "https://systemsltd.com/careers"},
-        {"title": "Data Scientist", "company": "Afiniti", "loc": "Karachi", "skills": "SQL, Statistics, R, ML", "url": "https://afiniti.com/careers"},
-        {"title": "MLOps Lead", "company": "NetSol", "loc": "Islamabad", "skills": "Docker, AWS, Kubernetes", "url": "https://netsoltech.com/careers"},
-        {"title": "AI Intern", "company": "Aror Solutions", "loc": "Sukkur", "skills": "Python, Flask, Git", "url": "#"}
+        {"title": "AI Research Scientist", "company": "Systems Ltd", "location": "Lahore", "salary": 280000, "skills": "Python, PyTorch, NLP, Scikit-learn, Research, Deep Learning"},
+        {"title": "Senior Data Architect", "company": "Afiniti", "location": "Karachi", "salary": 350000, "skills": "SQL, Python, Statistics, Machine Learning, AWS, ETL, Big Data"},
+        {"title": "ML Engineer (Vision)", "company": "Folio3", "location": "Karachi", "salary": 140000, "skills": "Python, Computer Vision, OpenCV, Git, Django, PyTorch"},
+        {"title": "AI Web Developer", "company": "Aror Solutions", "location": "Sukkur", "salary": 125000, "skills": "JavaScript, React, API, Python, Tailwind, Fastapi"},
+        {"title": "Cloud Security Expert", "company": "NetSol", "location": "Islamabad", "salary": 310000, "skills": "AWS, Docker, Kubernetes, Linux, Python, CI/CD, Cyber Security"},
+        {"title": "Junior Data Analyst", "company": "Contour Software", "location": "Lahore", "salary": 160000, "skills": "SQL, Excel, Python, PowerBI, Statistics, Tableau"},
+        {"title": "NLP Engineer", "company": "Aror Solutions", "location": "Sukkur", "salary": 180000, "skills": "Python, NLP, Transformers, Huggingface, Spacy, ML"},
+        {"title": "Data Scientist", "company": "Jazz", "location": "Islamabad", "salary": 250000, "skills": "Python, Machine Learning, Data Visualization, SQL, Pandas, Scikit-learn"},
+        {"title": "Prompt Engineer", "company": "TenPearls", "location": "Karachi", "salary": 150000, "skills": "LLM, Prompt Engineering, OpenAI, GPT, Python, Communication"},
+        {"title": "Backend Developer", "company": "Systems Ltd", "location": "Lahore", "salary": 200000, "skills": "Python, Django, PostgreSQL, REST APIs, Git, Docker"},
+        {"title": "GenAI Architect", "company": "Afiniti", "location": "Islamabad", "salary": 450000, "skills": "Python, LLM, LangChain, Vector Databases, RAG, Cloud Computing"}
     ]
     return pd.DataFrame(data)
 
 # ──────────────────────────────────────────────────────────────
-#  5. MAIN APP INTERFACE
+#  3. THE MATHEMATICAL BRAIN 
 # ──────────────────────────────────────────────────────────────
-login_system() # Activate Login
+def calculate_ai_fit(input_text, df):
+    # Week 08: Preprocessing 
+    def clean(t): return re.sub(r'[^a-z0-9\s]', '', t.lower())
+    
+       # TF-IDF Vectorization
+    tfidf = TfidfVectorizer(stop_words='english')
+    corpus = df['title'] + " " + df['skills']
+    tfidf_matrix = tfidf.fit_transform(corpus.apply(clean))
+    
+    # Vector Space Projection
+    user_vec = tfidf.transform([clean(input_text)])
+    
+    # Cosine Similarity (Math calculation)
+    scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
+    df['score'] = scores * 100
+    
+    # Logic: Finding Skill Gaps 
+    user_tokens = set(clean(input_text).split())
+    def find_gap(row_skills):
+        required = set([s.strip().lower() for s in row_skills.split(',')])
+        gap = required - user_tokens
+        return ", ".join(list(gap)).title() if gap else "Ready!"
+    
+    df['gap'] = df['skills'].apply(find_gap)
+    return df.sort_values(by='score', ascending=False)
 
-st.title("🚀 TalentMatch Pro: AI Recruitment Engine")
-st.write(f"Candidate: **{st.session_state.get('user', 'Waqaas Hussain')}** | Aror University Sukkur")
+# ──────────────────────────────────────────────────────────────
+#  4. SIDEBAR & CANDIDATE DATA
+# ──────────────────────────────────────────────────────────────
+df_main = get_national_db()
 
-# --- Sidebar Inputs ---
 with st.sidebar:
-    st.header("📤 Upload Resume")
-    uploaded_file = st.file_uploader("Choose your PDF Resume", type="pdf")
-    manual_skills = st.text_area("Or Paste Skills Manually")
+    st.markdown("<h1 style='color:#10b981;'>TalentMatch AI</h1>", unsafe_allow_html=True)
+    st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=70)
+    st.markdown("---")
+    
+    st.subheader("👨‍💻 Professional Profile")
+    u_name = st.text_input("Candidate Name", "Waqaas Hussain")
+    u_input = st.text_area("Paste Full CV / Resume Content", placeholder="e.g. Python Developer with experience in ML...", height=250)
+    u_loc = st.selectbox("Market Focus", ["All Pakistan"] + sorted(list(df_main['location'].unique())))
     
     st.markdown("---")
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    trigger = st.button("Generate the jobs ")
+    st.caption(f"Project by {u_name}\nAror University Sukkur")
 
-# --- Matching Logic ---
-if uploaded_file or manual_skills:
-    # Get Resume Text
-    resume_text = extract_data_from_pdf(uploaded_file) if uploaded_file else manual_skills
-    
-    # 1. Use BERT / Transformers (Requirement 2)
-    with st.spinner("BERT Model analyzing semantic context..."):
-        jobs_df = fetch_mock_api_jobs()
-        job_descriptions = jobs_df['title'] + " " + jobs_df['skills']
-        
-        # Encoding (Transforming text to BERT Vector Space)
-        job_embeddings = model.encode(job_descriptions.tolist(), convert_to_tensor=True)
-        user_embedding = model.encode(resume_text, convert_to_tensor=True)
-        
-        # Calculate Cosine Similarity via BERT Tensors
-        cosine_scores = util.cos_sim(user_embedding, job_embeddings).flatten()
-        jobs_df['match_score'] = cosine_scores.tolist()
+# ──────────────────────────────────────────────────────────────
+#  5. THE DASHBOARD (Week 08 & 09 Visualization)
+# ──────────────────────────────────────────────────────────────
+st.title("Job Recommendation System 🎯")
+st.write(f"Instructor: **Sir Abdul Haseeb** | **BS AI Semester 4 Final Project**")
 
-    # --- Display Results ---
-    st.subheader("🎯 Top Semantic Matches")
-    results = jobs_df.sort_values(by='match_score', ascending=False)
+# Hero Stats (Wonderful Addition)
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("Available Jobs", len(df_main))
+m2.metric("Top Hub", "Karachi")
+m3.metric("AI Demand", "High")
+m4.metric("Avg Salary", "PKR 180K")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+if trigger and u_input:
+    results = calculate_ai_fit(u_input, df_main)
+    if u_loc != "All Pakistan":
+        results = results[results['location'] == u_loc]
+        
+    res_tab, vis_tab = st.tabs(["🎯 Top Matched Opportunities", "📊 Industry Insights"])
     
-    for _, row in results.iterrows():
-        match_pct = int(row['match_score'] * 100)
-        if match_pct > 20: # Display relevant matches
-            with st.container():
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    st.markdown(f"""
-                    <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; border-left:5px solid #10b981;">
-                        <h4>{row['title']} @ {row['company']}</h4>
-                        <p>📍 {row['loc']} | <b>Skills:</b> {row['skills']}</p>
+    with res_tab:
+        st.subheader(f"Ranked Recommendations for {u_name}")
+        for _, row in results.iterrows():
+            if row['score'] > 2:
+                st.markdown(f"""
+                <div class="job-card">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <h2 style="margin:0; color:#10b981;">{row['title']}</h2>
+                            <p style="margin:0; opacity:0.8; font-weight:600;">{row['company']} • {row['location']}</p>
+                        </div>
+                        <div class="match-val">{int(row['score'])}% Match</div>
                     </div>
-                    """, unsafe_allow_html=True)
-                with col2:
-                    st.metric("Match", f"{match_pct}%")
-                    # 2. Add job apply button (Requirement 5)
-                    st.link_button("Apply Now ↗️", row['url'])
-                st.markdown("<br>", unsafe_allow_html=True)
+                    <div style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
+                        <span style="font-size:0.85rem; color:#94a3b8; font-weight:bold;">💡 SKILL GAP:</span><br>
+                        <span style="color:#f87171; font-weight:600; font-size:0.95rem;">{row['gap']}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
-else:
-    st.info("Please upload your PDF resume or enter skills to begin the Transformer-based matching.")
+    with vis_tab:
+      
+        st.subheader("National Market Analysis")
+        cl, cr = st.columns(2)
+        
+        # Aggregate data for Plotly charts
+        salary_data = df_main.groupby('location', as_index=False)['salary'].mean()
+        job_counts = df_main['location'].value_counts().reset_index()
+        job_counts.columns = ['location', 'count']
+
+        with cl:
+            fig = px.bar(salary_data, x='location', y='salary', 
+                         title="Average Salary Benchmarks by City",
+                         color='salary', color_continuous_scale='Greens',
+                         labels={'location': 'City', 'salary': 'Average Salary (PKR)'})
+            fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color='white')
+            st.plotly_chart(fig, use_container_width=True)
+            
+        with cr:
+            fig2 = px.pie(job_counts, names='location', values='count', 
+                          title="Market Opportunity Share",
+                          color_discrete_sequence=px.colors.sequential.Greens_r)
+            fig2.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color='white')
+            st.plotly_chart(fig2, use_container_width=True)
+
+with st.expander(" Algorithm Explainability "):
+    st.write("""
+    **Mathematical Pipeline:**
+    1. **TF-IDF Vectorization:** Converts unstructured CV text into numerical feature vectors.
+    2. **Cosine Similarity:** Measures the cosine of the angle between your skill vector and the job requirement.
+    3. **Ranking Engine:** Sorts jobs based on the highest dot-product score.
+    """)
+    
 
 st.markdown("---")
-st.caption("BS AI Semester 4 | Advanced Implementation: Transformers & PDF Parsing")
+st.caption("BS AI Semester 4 | Aror University Sukkur |")
