@@ -3,7 +3,7 @@
 #   Institution : Aror University Sukkur
 #   Student     : Waqaas Hussain (SAP-5000000291)
 #   Instructor  : Sir Abdul Haseeb (BS AI - Semester 4)
-#   Core Logic  : NLP / TF-IDF Vector Space Modeling
+#   Core Logic  : NLP / Sentence Transformers & PDF Parsing
 # ============================================================
 
 import streamlit as st
@@ -11,13 +11,20 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import re
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+import pdfplumber
+from sentence_transformers import SentenceTransformer, util
+
+# Load the Sentence Transformer model (cached to avoid reloading)
+@st.cache_resource
+def load_sbert_model():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+sbert_model = load_sbert_model()
 
 # ──────────────────────────────────────────────────────────────
 #  1. GUI 
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch AI | Pro Edition", layout="wide", page_icon="🎯")
+st.set_page_config(page_title="TalentMatch AI | Pro Edition", layout="wide", page_icon="🏛️")
 
 st.markdown("""
 <style>
@@ -88,23 +95,24 @@ def get_national_db():
 #  3. THE MATHEMATICAL BRAIN 
 # ──────────────────────────────────────────────────────────────
 def calculate_ai_fit(input_text, df):
-    # Week 08: Preprocessing 
+    # Combine Job Title and Skills for Context
+    corpus = (df['title'] + " " + df['skills']).tolist()
+    
+    # Semantic Search via Sentence-Transformers
+    job_embeddings = sbert_model.encode(corpus, convert_to_tensor=True)
+    user_embedding = sbert_model.encode(input_text, convert_to_tensor=True)
+    
+    # Cosine Similarity Tensor
+    cosine_scores = util.cos_sim(user_embedding, job_embeddings)[0]
+    
+    # Convert PyTorch tensor to numpy
+    scores = cosine_scores.cpu().numpy()
+    df['score'] = np.clip(scores * 100, 0, 100) # Normalize to 0-100%
+    
+    # Logic: Finding Skill Gaps (Simple string matching as fallback)
     def clean(t): return re.sub(r'[^a-z0-9\s]', '', t.lower())
-    
-       # TF-IDF Vectorization
-    tfidf = TfidfVectorizer(stop_words='english')
-    corpus = df['title'] + " " + df['skills']
-    tfidf_matrix = tfidf.fit_transform(corpus.apply(clean))
-    
-    # Vector Space Projection
-    user_vec = tfidf.transform([clean(input_text)])
-    
-    # Cosine Similarity (Math calculation)
-    scores = cosine_similarity(user_vec, tfidf_matrix).flatten()
-    df['score'] = scores * 100
-    
-    # Logic: Finding Skill Gaps 
     user_tokens = set(clean(input_text).split())
+    
     def find_gap(row_skills):
         required = set([s.strip().lower() for s in row_skills.split(',')])
         gap = required - user_tokens
@@ -120,12 +128,24 @@ df_main = get_national_db()
 
 with st.sidebar:
     st.markdown("<h1 style='color:#10b981;'>TalentMatch AI</h1>", unsafe_allow_html=True)
-    st.image("https://cdn-icons-png.flaticon.com/512/3850/3850285.png", width=70)
+    st.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=70)
     st.markdown("---")
     
     st.subheader("👨‍💻 Professional Profile")
     u_name = st.text_input("Candidate Name", "Waqaas Hussain")
-    u_input = st.text_area("Paste Full CV / Resume Content", placeholder="e.g. Python Developer with experience in ML...", height=250)
+    
+    cv_pdf = st.file_uploader("Upload CV (PDF format)", type=["pdf"])
+    extracted_text = ""
+    
+    if cv_pdf is not None:
+        with pdfplumber.open(cv_pdf) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text + "\n"
+        st.success("PDF Extracted Successfully!")
+        
+    u_input = st.text_area("Or Paste Full CV / Resume Content", value=extracted_text, placeholder="e.g. Python Developer with experience in ML...", height=200)
     u_loc = st.selectbox("Market Focus", ["All Pakistan"] + sorted(list(df_main['location'].unique())))
     
     st.markdown("---")
@@ -202,9 +222,9 @@ if trigger and u_input:
 with st.expander(" Algorithm Explainability "):
     st.write("""
     **Mathematical Pipeline:**
-    1. **TF-IDF Vectorization:** Converts unstructured CV text into numerical feature vectors.
-    2. **Cosine Similarity:** Measures the cosine of the angle between your skill vector and the job requirement.
-    3. **Ranking Engine:** Sorts jobs based on the highest dot-product score.
+    1. **Semantic Embeddings:** Uses `all-MiniLM-L6-v2` (Sentence Transformers) to convert CV and job descriptions into high-dimensional semantic vectors.
+    2. **Cosine Similarity:** Measures the semantic similarity angle between the candidate's embeddings and the market requirements.
+    3. **Ranking Engine:** Sorts opportunities based on the highest semantic match score.
     """)
     
 
