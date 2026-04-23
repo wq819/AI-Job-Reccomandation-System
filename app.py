@@ -171,21 +171,21 @@ st.markdown("""
     }
     .job-card:hover {
         background: rgba(30, 41, 59, 0.8);
-        border: 1px solid rgba(16, 185, 129, 0.4);
+        border: 1px solid rgba(59, 130, 246, 0.4);
         transform: translateY(-4px);
-        box-shadow: 0 10px 40px -10px rgba(16, 185, 129, 0.15);
+        box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.15);
     }
     
     /* Typography and Accents */
     .gradient-text {
-        background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+        background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 700;
     }
     
     .match-val {
-        background: linear-gradient(135deg, #10b981, #047857);
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         font-weight: 800; 
@@ -200,12 +200,12 @@ st.markdown("""
         border-radius: 8px !important;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #10b981 !important;
-        box-shadow: 0 0 0 1px #10b981 !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 1px #3b82f6 !important;
     }
     
     .stButton>button {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
         color: white !important;
         border-radius: 8px !important;
         font-weight: 600 !important;
@@ -217,14 +217,14 @@ st.markdown("""
     }
     .stButton>button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
     }
     
     /* Metrics Styling */
     [data-testid="stMetricValue"] {
         font-size: 2rem !important;
         font-weight: 700 !important;
-        color: #34d399 !important;
+        color: #60a5fa !important;
     }
     [data-testid="stMetricLabel"] {
         font-size: 0.9rem !important;
@@ -251,8 +251,8 @@ st.markdown("""
         font-weight: 600;
     }
     .stTabs [aria-selected="true"] {
-        color: #10b981 !important;
-        border-bottom: 2px solid #10b981 !important;
+        color: #3b82f6 !important;
+        border-bottom: 2px solid #3b82f6 !important;
     }
 </style>
 """, unsafe_allow_html=True)
