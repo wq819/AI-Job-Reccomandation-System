@@ -1,9 +1,10 @@
 # ============================================================
 #   Job Recommendation System
 #   Institution : Aror University Sukkur
-#   Student     : Waqaas Hussain (SAP-5000000291)
+#   Students    : Waqaas Hussain (SAP-5000000291)
+#                 Hira Abdul Hafeez (SAP-5000000314)
 #   Instructor  : Sir Abdul Haseeb (BS AI - Semester 4)
-#   Core Logic  : NLP / Sentence Transformers & PDF Parsing
+#   Core Logic  : TF-IDF Vector Space Modeling & Cosine Similarity
 # ============================================================
 
 import streamlit as st
@@ -12,52 +13,87 @@ import numpy as np
 import plotly.express as px
 import re
 import pdfplumber
-import humanize
-from typing import Set
-from sentence_transformers import SentenceTransformer, util
+import nltk
+import logging
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from typing import Set, Optional
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+@st.cache_resource
+def download_nltk_resources():
+    try:
+        nltk.data.find('tokenizers/punkt_tab')
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        logger.info("Downloading NLTK resources...")
+        nltk.download('punkt', quiet=True)
+        nltk.download('punkt_tab', quiet=True)
+        nltk.download('stopwords', quiet=True)
+
+download_nltk_resources()
+
+@st.cache_resource
+def load_sentence_transformer():
+    """Loads the Sentence Transformer model with caching for performance."""
+    logger.info("Loading SentenceTransformer model...")
+    return SentenceTransformer('all-MiniLM-L6-v2')
 
 class JobRecommendationEngine:
     """
-    An official implementation of a Job Recommendation Engine using Semantic Search.
+    A professional implementation of a Job Recommendation Engine using Semantic Search.
     """
     
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
-        self.model_name = model_name
-        self.model = self._load_model()
+    def __init__(self):
+        self.model = load_sentence_transformer()
+        self.stop_words = set(stopwords.words('english'))
 
-    @staticmethod
-    @st.cache_resource
-    def _load_model() -> SentenceTransformer:
-        """Loads and caches the Sentence Transformer model."""
-        return SentenceTransformer('all-MiniLM-L6-v2')
-
-    @staticmethod
-    def clean_text(text: str) -> str:
-        """Cleans input text by removing special characters and lowering case."""
-        return re.sub(r'[^a-z0-9\s]', '', text.lower())
+    def clean_text(self, text: str) -> str:
+        """Cleans input text by removing special characters, lowercasing, and removing stopwords."""
+        if not isinstance(text, str):
+            return ""
+        text = re.sub(r'[^a-z0-9\s]', '', text.lower())
+        tokens = word_tokenize(text)
+        filtered_tokens = [word for word in tokens if word not in self.stop_words]
+        return " ".join(filtered_tokens)
 
     def calculate_fit(self, input_text: str, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Calculates the semantic fit between the candidate's CV and job descriptions.
+        Calculates the semantic similarity between the candidate's CV and job descriptions.
         """
+        if df.empty or not input_text.strip():
+            logger.warning("Empty dataframe or input text provided to calculate_fit.")
+            if not df.empty:
+                df['score'] = 0
+                df['gap'] = "No input provided"
+            return df
+
         # Combine Job Title and Skills for Context
-        corpus = (df['title'] + " " + df['skills']).tolist()
+        corpus = (df['title'] + " " + df['skills']).apply(self.clean_text).tolist()
         
-        # Semantic Search via Sentence-Transformers
-        job_embeddings = self.model.encode(corpus, convert_to_tensor=True)
-        user_embedding = self.model.encode(input_text, convert_to_tensor=True)
+        # Generate Dense Vector Embeddings
+        logger.info("Generating semantic embeddings for market matching.")
+        corpus_embeddings = self.model.encode(corpus)
+        user_embedding = self.model.encode([self.clean_text(input_text)])
         
-        # Cosine Similarity Tensor
-        cosine_scores = util.cos_sim(user_embedding, job_embeddings)[0]
-        
-        # Convert PyTorch tensor to numpy
-        scores = cosine_scores.cpu().numpy()
+        # Cosine Similarity Calculation on Dense Vectors
+        scores = cosine_similarity(user_embedding, corpus_embeddings).flatten()
         df['score'] = np.clip(scores * 100, 0, 100) # Normalize to 0-100%
         
-        # Logic: Finding Skill Gaps
-        user_tokens: Set[str] = set(self.clean_text(input_text).split())
+        # Logic: Finding Explicit Skill Gaps
+        user_tokens: Set[str] = set(word_tokenize(self.clean_text(input_text)))
         
         def find_gap(row_skills: str) -> str:
+            if not isinstance(row_skills, str):
+                return ""
             required = set([s.strip().lower() for s in row_skills.split(',')])
             gap = required - user_tokens
             return ", ".join(list(gap)).title() if gap else "Ready!"
@@ -66,79 +102,157 @@ class JobRecommendationEngine:
         return df.sort_values(by='score', ascending=False)
 
 @st.cache_data
-def get_national_db() -> pd.DataFrame:
-    """Returns the official dummy database of national jobs."""
-    data = [
-        {"title": "AI Research Scientist", "company": "Systems Ltd", "location": "Lahore", "salary": 280000, "skills": "Python, PyTorch, NLP, Scikit-learn, Research, Deep Learning"},
-        {"title": "Senior Data Architect", "company": "Afiniti", "location": "Karachi", "salary": 350000, "skills": "SQL, Python, Statistics, Machine Learning, AWS, ETL, Big Data"},
-        {"title": "ML Engineer (Vision)", "company": "Folio3", "location": "Karachi", "salary": 140000, "skills": "Python, Computer Vision, OpenCV, Git, Django, PyTorch"},
-        {"title": "AI Web Developer", "company": "Aror Solutions", "location": "Sukkur", "salary": 125000, "skills": "JavaScript, React, API, Python, Tailwind, Fastapi"},
-        {"title": "Cloud Security Expert", "company": "NetSol", "location": "Islamabad", "salary": 310000, "skills": "AWS, Docker, Kubernetes, Linux, Python, CI/CD, Cyber Security"},
-        {"title": "Junior Data Analyst", "company": "Contour Software", "location": "Lahore", "salary": 160000, "skills": "SQL, Excel, Python, PowerBI, Statistics, Tableau"},
-        {"title": "NLP Engineer", "company": "Aror Solutions", "location": "Sukkur", "salary": 180000, "skills": "Python, NLP, Transformers, Huggingface, Spacy, ML"},
-        {"title": "Data Scientist", "company": "Jazz", "location": "Islamabad", "salary": 250000, "skills": "Python, Machine Learning, Data Visualization, SQL, Pandas, Scikit-learn"},
-        {"title": "Prompt Engineer", "company": "TenPearls", "location": "Karachi", "salary": 150000, "skills": "LLM, Prompt Engineering, OpenAI, GPT, Python, Communication"},
-        {"title": "Backend Developer", "company": "Systems Ltd", "location": "Lahore", "salary": 200000, "skills": "Python, Django, PostgreSQL, REST APIs, Git, Docker"},
-        {"title": "GenAI Architect", "company": "Afiniti", "location": "Islamabad", "salary": 450000, "skills": "Python, LLM, LangChain, Vector Databases, RAG, Cloud Computing"}
-    ]
-    return pd.DataFrame(data)
+def load_dataset() -> pd.DataFrame:
+    """Loads the official dataset from CSV."""
+    try:
+        df = pd.read_csv('dataset.csv')
+        logger.info(f"Dataset loaded successfully with {len(df)} records.")
+        return df
+    except Exception as e:
+        logger.error(f"Failed to load dataset: {e}")
+        st.error("Critical Error: dataset.csv not found or could not be read.")
+        return pd.DataFrame(columns=['title', 'company', 'location', 'salary', 'skills'])
 
 def extract_text_from_pdf(pdf_file) -> str:
-    """Extracts text from an uploaded PDF file."""
+    """Extracts text from an uploaded PDF file with error handling."""
     extracted_text = ""
-    with pdfplumber.open(pdf_file) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text()
-            if text:
-                extracted_text += text + "\n"
+    try:
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text + "\n"
+        logger.info("PDF parsed successfully.")
+    except Exception as e:
+        logger.error(f"Error parsing PDF: {e}")
+        st.error("Failed to parse the PDF document. Please ensure it is a valid text-based PDF.")
     return extracted_text
 
 # ──────────────────────────────────────────────────────────────
-#  GUI SETUP
+#  GUI SETUP & CUSTOM CSS
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch AI | Pro Edition", layout="wide", page_icon="🏛️")
+st.set_page_config(page_title="TalentMatch AI™ | Enterprise Edition", layout="wide", page_icon="👔")
 
+# Premium Enterprise CSS Styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
-    .stApp {
-        background: radial-gradient(circle at top right, #064e3b, #022c22, #000000);
-        color: #ecfdf5;
+    html, body, [class*="css"] { 
+        font-family: 'Inter', sans-serif; 
     }
     
-    /* Premium Glass-Card */
+    /* Modern Dark Theme Background */
+    .stApp {
+        background-color: #0f172a;
+        background-image: 
+            radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+            radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+            radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%);
+        color: #f8fafc;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: rgba(15, 23, 42, 0.95);
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    /* Premium Glass-Card for Jobs */
     .job-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 35px;
-        border-radius: 28px;
-        margin-bottom: 25px;
-        transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 24px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
     }
     .job-card:hover {
-        background: rgba(16, 185, 129, 0.08);
-        border: 1px solid #10b981;
-        transform: translateY(-10px);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 40px -10px rgba(16, 185, 129, 0.15);
+    }
+    
+    /* Typography and Accents */
+    .gradient-text {
+        background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
     }
     
     .match-val {
-        background: linear-gradient(135deg, #10b981, #34d399);
+        background: linear-gradient(135deg, #10b981, #047857);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 800; font-size: 1.8rem;
+        font-weight: 800; 
+        font-size: 1.75rem;
+    }
+    
+    /* Input Fields & Buttons */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #f8fafc !important;
+        border-radius: 8px !important;
+    }
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 1px #10b981 !important;
     }
     
     .stButton>button {
-        background: linear-gradient(135deg, #10b981, #059669) !important;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
         color: white !important;
-        border-radius: 14px !important;
-        font-weight: 700 !important;
-        height: 3.5em !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px !important;
         border: none !important;
+        padding: 0.5rem 1rem !important;
+        width: 100% !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton>button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    /* Metrics Styling */
+    [data-testid="stMetricValue"] {
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        color: #34d399 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    /* Tabs Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+        background-color: transparent;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 4px 4px 0px 0px;
+        gap: 1px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        color: #94a3b8;
+        font-weight: 600;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #10b981 !important;
+        border-bottom: 2px solid #10b981 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -147,106 +261,166 @@ st.markdown("""
 #  MAIN APPLICATION FLOW
 # ──────────────────────────────────────────────────────────────
 engine = JobRecommendationEngine()
-df_main = get_national_db()
+df_main = load_dataset()
+
+# Custom function to load image as base64 (to center it nicely in sidebar)
+import base64
+def get_image_base64(path):
+    import os
+    if os.path.exists(path):
+        with open(path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    return None
+
+logo_base64 = get_image_base64("logo.png")
 
 with st.sidebar:
-    st.markdown("<h1 style='color:#10b981;'>TalentMatch AI</h1>", unsafe_allow_html=True)
-    # Using an official crest/badge icon
-    st.image("https://cdn-icons-png.flaticon.com/512/1055/1055644.png", width=70)
-    st.markdown("---")
+    # Sidebar Header
+    if logo_base64:
+        st.markdown(f'''
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="data:image/png;base64,{logo_base64}" width="120" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            </div>
+        ''', unsafe_allow_html=True)
     
-    st.subheader("👨‍💻 Professional Profile")
-    u_name = st.text_input("Candidate Name", "Waqaas Hussain")
+    st.markdown("<h2 style='text-align: center; color: #f8fafc; font-weight: 700; margin-top: 0;'>TalentMatch<span class='gradient-text'> AI</span></h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 0.85rem; margin-top: -10px;'>Enterprise Talent Intelligence</p>", unsafe_allow_html=True)
     
-    cv_pdf = st.file_uploader("Upload Official CV (PDF)", type=["pdf"])
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 20px 0;'>", unsafe_allow_html=True)
+    
+    # Input Section
+    st.markdown("<h4 style='color: #e2e8f0; font-size: 1rem; margin-bottom: 15px;'>Candidate Profile</h4>", unsafe_allow_html=True)
+    u_name = st.text_input("Full Name", "Waqaas Hussain")
+    
+    cv_pdf = st.file_uploader("Upload Resume (PDF)", type=["pdf"], help="Upload a professional PDF formatted resume.")
     extracted_text = ""
     
     if cv_pdf is not None:
         extracted_text = extract_text_from_pdf(cv_pdf)
-        st.success("Official Document Parsed Successfully!")
+        st.success("✓ Resume Processed Successfully")
         
-    u_input = st.text_area("Or Paste Full CV / Resume Content", value=extracted_text, placeholder="e.g. Python Developer with experience in ML...", height=200)
-    u_loc = st.selectbox("Market Focus", ["All Pakistan"] + sorted(list(df_main['location'].unique())))
+    u_input = st.text_area("Resume Content / Professional Summary", value=extracted_text, placeholder="Paste your professional summary, skills, and experience here...", height=180)
     
-    st.markdown("---")
-    trigger = st.button("Generate Opportunities")
-    st.caption(f"Official Project by {u_name}\nAror University Sukkur")
+    if not df_main.empty:
+        u_loc = st.selectbox("Preferred Location", ["All Regions"] + sorted(list(df_main['location'].unique())))
+    else:
+        u_loc = "All Regions"
+        
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 25px 0 15px 0;'>", unsafe_allow_html=True)
+    trigger = st.button("Analyze & Match Opportunities")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.caption("Developed by **Waqaas Hussain** & **Hira Abdul Hafeez**<br>Aror University Sukkur", unsafe_allow_html=True)
 
-st.title("Job Recommendation System 🏛️")
-st.write(f"Instructor: **Sir Abdul Haseeb** | **BS AI Semester 4 Final Project**")
+# Main Content Area
+st.markdown("<h1 style='font-size: 2.5rem; font-weight: 700; margin-bottom: 0;'>Talent Acquisition <span class='gradient-text'>Dashboard</span></h1>", unsafe_allow_html=True)
+st.markdown("<p style='color: #94a3b8; font-size: 1.1rem; margin-top: 5px; margin-bottom: 30px;'>AI-Powered Semantic Job Matching System • Supervised by Sir Abdul Haseeb</p>", unsafe_allow_html=True)
 
-# Hero Stats
-m1, m2, m3, m4 = st.columns(4)
-m1.metric("Available Opportunities", humanize.intword(len(df_main)))
-m2.metric("Top Corporate Hub", "Karachi")
-m3.metric("AI Market Demand", "High")
-# Using humanize for average salary formatting
-avg_salary = df_main['salary'].mean()
-m4.metric("Avg Salary", f"PKR {humanize.intcomma(int(avg_salary))}")
+if not df_main.empty:
+    # High-End Metric Cards
+    m1, m2, m3, m4 = st.columns(4)
+    
+    with m1:
+        st.metric("Total Opportunities", f"{len(df_main):,}")
+    with m2:
+        top_hub = df_main['location'].mode()[0] if not df_main.empty else "N/A"
+        st.metric("Primary Tech Hub", top_hub)
+    with m3:
+        st.metric("Market Demand", "High Growth")
+    with m4:
+        avg_salary = int(df_main['salary'].mean()) if not df_main.empty else 0
+        st.metric("Avg. Compensation", f"PKR {avg_salary/1000:.0f}k")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-if trigger and u_input:
-    results = engine.calculate_fit(u_input, df_main)
-    if u_loc != "All Pakistan":
-        results = results[results['location'] == u_loc]
-        
-    res_tab, vis_tab = st.tabs(["🎯 Top Matched Roles", "📊 Market Analytics"])
-    
-    with res_tab:
-        st.subheader(f"Ranked Corporate Recommendations for {u_name}")
-        for _, row in results.iterrows():
-            if row['score'] > 2:
-                # Format salary using humanize for readability
-                formatted_salary = f"PKR {humanize.intcomma(row['salary'])}"
-                
-                st.markdown(f"""
-                <div class="job-card">
-                    <div style="display:flex; justify-content:space-between; align-items:start;">
-                        <div>
-                            <h2 style="margin:0; color:#10b981;">{row['title']}</h2>
-                            <p style="margin:0; opacity:0.8; font-weight:600;">{row['company']} • {row['location']} • {formatted_salary}</p>
-                        </div>
-                        <div class="match-val">{int(row['score'])}% Match</div>
-                    </div>
-                    <div style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px;">
-                        <span style="font-size:0.85rem; color:#94a3b8; font-weight:bold;">💡 SKILL GAP ANALYSIS:</span><br>
-                        <span style="color:#f87171; font-weight:600; font-size:0.95rem;">{row['gap']}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-    with vis_tab:
-        st.subheader("National Official Market Analytics")
-        cl, cr = st.columns(2)
-        
-        salary_data = df_main.groupby('location', as_index=False)['salary'].mean()
-        job_counts = df_main['location'].value_counts().reset_index()
-        job_counts.columns = ['location', 'count']
-
-        with cl:
-            fig = px.bar(salary_data, x='location', y='salary', 
-                         title="Average Corporate Compensation by Region",
-                         color='salary', color_continuous_scale='Greens',
-                         labels={'location': 'Region', 'salary': 'Average Salary (PKR)'})
-            fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color='white')
-            st.plotly_chart(fig, use_container_width=True)
+if trigger and u_input and not df_main.empty:
+    with st.spinner("Initializing Semantic Matching Engine..."):
+        results = engine.calculate_fit(u_input, df_main)
+        if u_loc != "All Regions":
+            results = results[results['location'] == u_loc]
             
-        with cr:
-            fig2 = px.pie(job_counts, names='location', values='count', 
-                          title="Market Opportunity Distribution",
-                          color_discrete_sequence=px.colors.sequential.Greens_r)
-            fig2.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color='white')
-            st.plotly_chart(fig2, use_container_width=True)
+    if results.empty:
+        st.warning(f"No opportunities found for the selected region ({u_loc}). Please broaden your search.")
+    else:
+        res_tab, vis_tab = st.tabs(["🎯 Top Matched Roles", "📈 Market Analytics"])
+        
+        with res_tab:
+            st.markdown(f"<h3 style='margin-bottom: 20px; font-weight: 600;'>Recommended Roles for {u_name}</h3>", unsafe_allow_html=True)
+            for _, row in results.iterrows():
+                if row['score'] > 2:
+                    formatted_salary = f"PKR {int(row['salary']):,}"
+                    
+                    st.markdown(f"""
+                    <div class="job-card">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <div>
+                                <h3 style="margin:0 0 5px 0; color:#f8fafc; font-weight: 600;">{row['title']}</h3>
+                                <p style="margin:0; color:#94a3b8; font-size: 0.95rem; font-weight:500;">
+                                    <span style="color: #38bdf8;">🏢 {row['company']}</span> &nbsp;•&nbsp; 
+                                    <span style="color: #a78bfa;">📍 {row['location']}</span> &nbsp;•&nbsp; 
+                                    <span style="color: #fbbf24;">💰 {formatted_salary}</span>
+                                </p>
+                            </div>
+                            <div class="match-val">{int(row['score'])}% Match</div>
+                        </div>
+                        <div style="margin-top:18px; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px 15px;">
+                            <span style="font-size:0.8rem; color:#94a3b8; font-weight:700; text-transform: uppercase; letter-spacing: 0.5px;">Skill Gap Identification</span><br>
+                            <span style="color:#fb7185; font-weight:500; font-size:0.95rem; display: inline-block; margin-top: 4px;">{row['gap']}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+        with vis_tab:
+            st.markdown("<h3 style='margin-bottom: 20px; font-weight: 600;'>Market Insights & Analytics</h3>", unsafe_allow_html=True)
+            cl, cr = st.columns(2)
+            
+            salary_data = df_main.groupby('location', as_index=False)['salary'].mean()
+            job_counts = df_main['location'].value_counts().reset_index()
+            job_counts.columns = ['location', 'count']
+    
+            with cl:
+                fig = px.bar(salary_data, x='location', y='salary', 
+                             title="Average Compensation by Region",
+                             color='salary', color_continuous_scale='Viridis',
+                             labels={'location': 'Region', 'salary': 'Avg Salary (PKR)'})
+                fig.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)', 
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    font_color='#f8fafc',
+                    title_font=dict(size=18, family="Inter", color="#f8fafc"),
+                    margin=dict(l=20, r=20, t=50, b=20)
+                )
+                fig.update_xaxes(showgrid=False, linecolor='rgba(255,255,255,0.1)')
+                fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', linecolor='rgba(255,255,255,0.1)')
+                st.plotly_chart(fig, use_container_width=True)
+                
+            with cr:
+                fig2 = px.pie(job_counts, names='location', values='count', 
+                              title="Opportunity Distribution",
+                              color_discrete_sequence=px.colors.sequential.Teal)
+                fig2.update_traces(hole=.4, hoverinfo="label+percent+name")
+                fig2.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)', 
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    font_color='#f8fafc',
+                    title_font=dict(size=18, family="Inter", color="#f8fafc"),
+                    margin=dict(l=20, r=20, t=50, b=20)
+                )
+                st.plotly_chart(fig2, use_container_width=True)
 
-with st.expander(" Official Algorithm Documentation "):
-    st.write("""
-    **Official Pipeline Architecture:**
-    1. **Data Ingestion & Cleaning:** Extracts unstructured resume data and cleanses special characters to maintain data integrity.
-    2. **Semantic Vectorization:** Leverages `all-MiniLM-L6-v2` via Sentence Transformers to map candidate skills into a high-dimensional vector space.
-    3. **Cosine Similarity Computation:** Computes the mathematical angle between the candidate's embedding and market opportunities to determine semantic alignment.
-    4. **Recommendation Engine:** Ranks the output in descending order of similarity, providing granular skill-gap analysis.
+st.markdown("<br><br>", unsafe_allow_html=True)
+with st.expander("⚙️ System Architecture & Methodology", expanded=False):
+    st.markdown("""
+    ### Semantic Matching Pipeline
+    This enterprise-grade recommendation system leverages state-of-the-art Natural Language Processing (NLP) to perform highly accurate candidate-to-job matching.
+    
+    1. **Intelligent Data Parsing:** Extracts unstructured text from resumes using advanced PDF parsing heuristics.
+    2. **Text Normalization:** Cleanses text and filters noise using NLTK stop-word corpora.
+    3. **Dense Vectorization:** Employs `all-MiniLM-L6-v2` Sentence Transformers to map candidate profiles and job descriptions into a shared high-dimensional semantic space.
+    4. **Cosine Similarity Matrix:** Calculates mathematical distance between vectors to yield a precise semantic match percentage.
+    5. **Gap Analysis Engine:** Computes set differences between explicit job requirements and parsed candidate tokens to identify critical missing skills.
     """)
     
-st.markdown("---")
-st.caption("Official BS AI Semester 4 Submission | Aror University Sukkur |")
+st.markdown("<div style='text-align: center; margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; color: #64748b; font-size: 0.85rem;'>", unsafe_allow_html=True)
+st.markdown("© 2026 TalentMatch AI. All rights reserved. | Aror University Sukkur | Final Project Submission", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
