@@ -115,7 +115,35 @@ def extract_text_from_pdf(pdf_file) -> str:
     return extracted_text
 
 # ──────────────────────────────────────────────────────────────
-#  4. SIDEBAR & NAVIGATION
+#  4. AUTHENTICATION (LOGIN PAGE)
+# ──────────────────────────────────────────────────────────────
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+
+if not st.session_state['logged_in']:
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown("<div style='background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;'>", unsafe_allow_html=True)
+        st.image("Aror Logo.jpg", width=120)
+        st.markdown("<h2 style='color:#065f46; margin-top: 15px;'>Student Portal Login</h2>", unsafe_allow_html=True)
+        
+        with st.form("login_form"):
+            username = st.text_input("Student ID / Username")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Secure Login", use_container_width=True)
+            
+            if submitted:
+                if username == "admin" and password == "12345":
+                    st.session_state['logged_in'] = True
+                    st.rerun()
+                else:
+                    st.error("Invalid Credentials! (Hint: admin / 12345)")
+        st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+
+# ──────────────────────────────────────────────────────────────
+#  5. SIDEBAR & NAVIGATION
 # ──────────────────────────────────────────────────────────────
 df = load_student_data()
 
@@ -146,7 +174,7 @@ if page == "🏠 Home":
         requirements. By using **TF-IDF Vectorization** and **Cosine Similarity**, we analyze the semantic meaning 
         of your skills to find the most relevant jobs and opportunities in Pakistan.
         """)
-        st.success("Goal: Improve job search accuracy via AI and Content-Based Filtering.")
+        st.success("🎯 Goal: Improve job search accuracy via AI and Content-Based Filtering.")
     with col2:
         st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
 
