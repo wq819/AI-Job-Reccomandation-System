@@ -1,8 +1,9 @@
 # ============================================================
-#   AI-BASED JOB RECOMMENDATION SYSTEM (ACADEMIC VERSION)
+#   JOB RECCOMANDATION SYSTEM
 #   Institution : Aror University Sukkur
 #   Students    : Waqaas Hussain & Hira Abdul Hafeez
-#   Course      : Programming for AI (Sir Abdul Haseeb)
+#   Supervisor  : Sir Abdul Haseeb 
+#   Project     : Final Semester Project (BS Artificial Intelligence)
 #   Algorithm   : TF-IDF Vectorization + Cosine Similarity
 # ============================================================
 
@@ -17,7 +18,7 @@ import re
 # ──────────────────────────────────────────────────────────────
 #  1. PAGE CONFIG & BRANDING
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="AI Job Matcher | Aror University", layout="wide", page_icon="🎓")
+st.set_page_config(page_title="Job Reccomandation System", layout="wide", page_icon="🎓")
 
 # Professional Green & Grey Theme (Academic Look)
 st.markdown("""
@@ -40,14 +41,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  2. DATASET (Aligned with Student/Fresh Graduate Market)
+#  2. DATASET (Aligned with Final Semester IT/AI Roles)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
-def load_student_data():
+def load_student_data()
     data = [
         {
-            "id": 1, "title": "AI Research Intern", "company": "Systems Ltd", 
-            "location": "Lahore", "type": "Internship", "salary": "Rs. 30,000",
+            "id": 1, "title": "AI Research Engineer", "company": "Systems Ltd", 
+            "location": "Lahore", "type": "Full Time", "salary": "Rs. 80,000",
             "skills": "Python, Machine Learning, Data Cleaning, Scikit-learn", 
             "desc": "Assist the AI team in preprocessing datasets and fine-tuning models.",
             "img": "https://images.unsplash.com/photo-1590059530472-87034f593322?q=80&w=600"
@@ -60,8 +61,8 @@ def load_student_data():
             "img": "https://images.unsplash.com/photo-1595905584523-999e4f3a3848?q=80&w=600"
         },
         {
-            "id": 3, "title": "Web Developer Intern", "company": "10Pearls", 
-            "location": "Karachi", "type": "Internship", "salary": "Rs. 25,000",
+            "id": 3, "title": "Software Developer", "company": "10Pearls", 
+            "location": "Karachi", "type": "Full Time", "salary": "Rs. 75,000",
             "skills": "HTML, CSS, JavaScript, React, Git", 
             "desc": "Help develop responsive UI components for international clients.",
             "img": "https://images.unsplash.com/photo-1568205706871-332308933220?q=80&w=600"
@@ -107,10 +108,11 @@ df = load_student_data()
 
 with st.sidebar:
     st.image("Aror Logo.jpg", use_container_width=True)
-    st.markdown("<h2 style='color:#065f46;'>🎓 TalentMatch AI</h2>", unsafe_allow_html=True)
-    page = st.radio("Navigation", ["🏠 Home", "🔍 find the jobs ", "📄 Project Proposal"])
+    st.markdown("<h2 style='color:#065f46; font-size: 22px; text-align: center;'>🎓 Job Reccomandation System</h2>", unsafe_allow_html=True)
+    page = st.radio("Navigation", ["🏠 Home", "🔍 Find Jobs", "📄 Project Proposal"])
     st.markdown("---")
-    st.write("**Final Project **")
+    st.write("**Project Type:**")
+    st.caption("Final Semester Project")
     st.write("**Institution:**")
     st.caption("Aror University Sukkur")
 
@@ -120,23 +122,23 @@ with st.sidebar:
 
 # --- HOME ---
 if page == "🏠 Home":
-    st.title("AI-Based Job Recommendation System")
-    st.subheader("BS Artificial Intelligence | Programming for AI")
+    st.title("Job Reccomandation System")
+    st.subheader("BS Artificial Intelligence | Final Semester Project")
     
     col1, col2 = st.columns([1.5, 1])
     with col1:
         st.write("""
-        Welcome to the official project demo. This system was designed to help students 
-        at **Aror University** bridge the gap between academic learning and industry 
-        requirements. By using **TF-IDF Vectorization**, we analyze the semantic meaning 
-        of your skills to find the most relevant internships in Pakistan.
+        Welcome to our Final Semester Project demonstration. This system was designed to help students 
+        and graduates at **Aror University** bridge the gap between academic learning and industry 
+        requirements. By using **TF-IDF Vectorization** and **Cosine Similarity**, we analyze the semantic meaning 
+        of your skills to find the most relevant jobs and opportunities in Pakistan.
         """)
-        st.success("🎯 Goal: Improve job search accuracy via Content-Based Filtering.")
+        st.success("🎯 Goal: Improve job search accuracy via AI and Content-Based Filtering.")
     with col2:
         st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
 
 # --- SEARCH ENGINE ---
-elif page == "🔍 find the jobs ":
+elif page == "🔍 Find Jobs":
     st.header("Intelligent Matching Engine")
     
     skills_in = st.text_input("Enter your Skills (e.g. Python, SQL, React, Machine Learning)")
@@ -151,13 +153,16 @@ elif page == "🔍 find the jobs ":
             if loc_filter != "All Cities":
                 results = results[results['location'] == loc_filter]
             
+            if results.empty:
+                st.info("No jobs found in that specific city. Try another location!")
+            
             for _, row in results.iterrows():
                 if row['match_percent'] > 0:
                     st.markdown(f"""
                     <div class="job-card">
                         <div style="display:flex; justify-content:space-between; align-items:start;">
                             <div style="display:flex; gap:15px;">
-                                <img src="{row['img']}" width="100" style="border-radius:8px; object-fit:cover;">
+                                <img src="{row['img']}" width="100" height="100" style="border-radius:8px; object-fit:cover; flex-shrink: 0;">
                                 <div>
                                     <h3 style="margin:0;">{row['title']}</h3>
                                     <p style="margin:0; color:#64748b; font-weight:600;">{row['company']} • {row['location']}</p>
@@ -170,7 +175,7 @@ elif page == "🔍 find the jobs ":
                             </div>
                         </div>
                         <div style="margin-top:15px; border-top: 1px solid #f3f4f6; padding-top:10px;">
-                            <span style="font-size:0.85rem; font-weight:bold; color:#065f46;">Stipend: {row['salary']}</span>
+                            <span style="font-size:0.85rem; font-weight:bold; color:#065f46;">Salary Range: {row['salary']}</span>
                             <div class="skill-missing">⚠️ Missing Skills: {row['missing_skills']}</div>
                         </div>
                     </div>
@@ -184,23 +189,25 @@ elif page == "📄 Project Proposal":
     
     with tab1:
         st.markdown(f"""
-        **Instructor:** Sir Abdul Haseeb  
-        **Problem:** Traditional keyword matching leads to irrelevant job suggestions.  
+        **Project Title:** Job Reccomandation System  
+        **Supervisor:** Sir Abdul Haseeb  
+        **Problem:** Traditional keyword matching leads to irrelevant job suggestions for fresh graduates.  
         **Solution:** Content-based filtering using Machine Learning to analyze user-skill semantic relationships.
         """)
         
     with tab2:
         st.markdown("""
         **Methodology Steps:**
-        1. **Data Collection:** Job titles/skills via CSV datasets.
+        1. **Data Collection:** Job titles/skills via datasets.
         2. **Preprocessing:** Text cleaning, stop-word removal, normalization.
         3. **Feature Extraction:** TF-IDF (Term Frequency-Inverse Document Frequency).
-        4. **Similarity:** Cosine Similarity to calculate vector distance.
+        4. **Similarity:** Cosine Similarity to calculate vector distance and find best matches.
         """)
         
     with tab3:
         st.markdown("""
-        **Included:** Recommender system, Streamlit GUI, Dataset analysis.  
+        **Included:** AI Recommender system, Streamlit GUI, Skill Gap Analysis.  
+        **Not Included:** Mobile App, Real-time Job Scraping API.
        """)
 
 st.markdown("---")
