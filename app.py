@@ -18,7 +18,7 @@ import re
 # ──────────────────────────────────────────────────────────────
 #  1. PAGE CONFIG & BRANDING
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Job Reccomandation System", layout="wide", page_icon="🎓")
+st.set_page_config(page_title="Job Reccomandation System", layout="wide", page_icon="Aror Logo.jpg")
 
 # Professional Green & Grey Theme (Academic Look)
 st.markdown("""
@@ -61,10 +61,10 @@ def load_student_data():
             "img": "https://images.unsplash.com/photo-1595905584523-999e4f3a3848?q=80&w=600"
         },
         {
-            "id": 3, "title": "Software Developer", "company": "10Pearls", 
+            "id": 3, "title": "AI & Software Developer", "company": "10Pearls", 
             "location": "Karachi", "type": "Full Time", "salary": "Rs. 75,000",
-            "skills": "HTML, CSS, JavaScript, React, Git", 
-            "desc": "Help develop responsive UI components for international clients.",
+            "skills": "Python, HTML, CSS, JavaScript, React, Machine Learning", 
+            "desc": "Help develop intelligent web applications and responsive UI components.",
             "img": "https://images.unsplash.com/photo-1568205706871-332308933220?q=80&w=600"
         },
         {
@@ -109,7 +109,7 @@ df = load_student_data()
 with st.sidebar:
     st.image("Aror Logo.jpg", use_container_width=True)
     st.markdown("<h2 style='color:#065f46; font-size: 22px; text-align: center;'>🎓 Job Reccomandation System</h2>", unsafe_allow_html=True)
-    page = st.radio("Navigation", ["🏠 Home", "🔍 Find Jobs", "📄 Project Proposal"])
+    page = st.radio("Navigation", ["🏠 Home", "🔍 Find Jobs", "📈 Market Analysis"])
     st.markdown("---")
     st.write("**Project Type:**")
     st.caption("Final Semester Project")
@@ -135,7 +135,7 @@ if page == "🏠 Home":
         """)
         st.success("🎯 Goal: Improve job search accuracy via AI and Content-Based Filtering.")
     with col2:
-        st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
+        st.image("Aror Logo.jpg", use_container_width=True)
 
 # --- SEARCH ENGINE ---
 elif page == "🔍 Find Jobs":
@@ -183,34 +183,30 @@ elif page == "🔍 Find Jobs":
                     </div>
                     """, unsafe_allow_html=True)
 
-# --- PROPOSAL DOCUMENTATION ---
-elif page == "📄 Project Proposal":
-    st.header("Project Proposal Documentation")
+# --- MARKET ANALYSIS ---
+elif page == "📈 Market Analysis":
+    st.header("Job Market Analytics")
     
-    tab1, tab2, tab3 = st.tabs(["Overview", "Methodology", "Scope"])
+    st.markdown("Here is an analysis of the current job market trends based on our dataset.")
     
-    with tab1:
-        st.markdown(f"""
-        **Project Title:** Job Reccomandation System  
-        **Supervisor:** Sir Abdul Haseeb  
-        **Problem:** Traditional keyword matching leads to irrelevant job suggestions for fresh graduates.  
-        **Solution:** Content-based filtering using Machine Learning to analyze user-skill semantic relationships.
-        """)
+    col1, col2 = st.columns(2)
+    
+    df_chart = df.copy()
+    # Convert 'Rs. 80,000' to numeric for chart
+    df_chart['salary_num'] = df_chart['salary'].apply(lambda x: int(re.sub(r'[^0-9]', '', x)))
+    
+    with col1:
+        fig1 = px.bar(df_chart, x='location', y='salary_num', color='location', 
+                      title="Average Salary by Location",
+                      labels={'salary_num': 'Salary (PKR)', 'location': 'City'})
+        fig1.update_layout(showlegend=False)
+        st.plotly_chart(fig1, use_container_width=True)
         
-    with tab2:
-        st.markdown("""
-        **Methodology Steps:**
-        1. **Data Collection:** Job titles/skills via datasets.
-        2. **Preprocessing:** Text cleaning, stop-word removal, normalization.
-        3. **Feature Extraction:** TF-IDF (Term Frequency-Inverse Document Frequency).
-        4. **Similarity:** Cosine Similarity to calculate vector distance and find best matches.
-        """)
+    with col2:
+        fig2 = px.pie(df_chart, names='location', title="Opportunity Distribution by City", hole=0.4)
+        st.plotly_chart(fig2, use_container_width=True)
         
-    with tab3:
-        st.markdown("""
-        **Included:** AI Recommender system, Streamlit GUI, Skill Gap Analysis.  
-        **Not Included:** Mobile App, Real-time Job Scraping API.
-       """)
+    st.info("💡 **Market Insights:** The analytics above reflect the current demand and compensation metrics for fresh graduates and entry-level professionals in Pakistan's tech sector.")
 
 st.markdown("---")
 st.caption("© 2026 | Aror University Sukkur | Department of Artificial Intelligence")
