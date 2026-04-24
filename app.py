@@ -121,12 +121,15 @@ if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 
 if not st.session_state['logged_in']:
-    col1, col2, col3 = st.columns([1, 2, 1])
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1.5, 2, 1.5])
     with col2:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.markdown("<div style='background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center;'>", unsafe_allow_html=True)
-        st.image("Aror Logo.jpg", width=120)
-        st.markdown("<h2 style='color:#065f46; margin-top: 15px;'>Student Portal Login</h2>", unsafe_allow_html=True)
+        # Perfectly center the logo in front
+        logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
+        with logo_col2:
+            st.image("Aror Logo.jpg", use_container_width=True)
+            
+        st.markdown("<h2 style='color:#065f46; text-align: center; margin-bottom: 20px;'>Student Portal Login</h2>", unsafe_allow_html=True)
         
         with st.form("login_form"):
             username = st.text_input("Student ID / Username")
@@ -139,7 +142,6 @@ if not st.session_state['logged_in']:
                     st.rerun()
                 else:
                     st.error("Invalid Credentials! (Hint: admin / 12345)")
-        st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
 # ──────────────────────────────────────────────────────────────
