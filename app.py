@@ -46,37 +46,28 @@ st.markdown("""
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_student_data():
-    data = [
-        {
-            "id": 1, "title": "AI Research Engineer", "company": "Systems Ltd", 
-            "location": "Lahore", "type": "Full Time", "salary": "Rs. 80,000",
-            "skills": "Python, Machine Learning, Data Cleaning, Scikit-learn", 
-            "desc": "Assist the AI team in preprocessing datasets and fine-tuning models.",
-            "img": "https://images.unsplash.com/photo-1590059530472-87034f593322?q=80&w=600"
-        },
-        {
-            "id": 2, "title": "Junior Data Analyst", "company": "Symmetry Group", 
-            "location": "Sukkur", "type": "Fresh Graduate", "salary": "Rs. 60,000",
-            "skills": "SQL, Excel, Python, PowerBI, Statistics", 
-            "desc": "Perform exploratory data analysis and create visualization dashboards.",
-            "img": "https://images.unsplash.com/photo-1595905584523-999e4f3a3848?q=80&w=600"
-        },
-        {
-            "id": 3, "title": "AI & Software Developer", "company": "10Pearls", 
-            "location": "Karachi", "type": "Full Time", "salary": "Rs. 75,000",
-            "skills": "Python, HTML, CSS, JavaScript, React, Machine Learning", 
-            "desc": "Help develop intelligent web applications and responsive UI components.",
-            "img": "https://images.unsplash.com/photo-1568205706871-332308933220?q=80&w=600"
-        },
-        {
-            "id": 4, "title": "Associate ML Engineer", "company": "Afiniti", 
-            "location": "Islamabad", "type": "Fresh Graduate", "salary": "Rs. 85,000",
-            "skills": "Python, PyTorch, Linux, API Integration, Docker", 
-            "desc": "Junior role focusing on deploying ML models into production environments.",
-            "img": "https://images.unsplash.com/photo-1627581555541-1979965d1b71?q=80&w=600"
-        }
-    ]
-    return pd.DataFrame(data)
+    try:
+        df = pd.read_csv('dataset.csv')
+        
+        # Add required columns if they are missing in the CSV
+        if 'type' not in df.columns:
+            df['type'] = "Full Time"
+        if 'desc' not in df.columns:
+            df['desc'] = "An exciting opportunity to join " + df['company'] + " and contribute to impactful technical projects."
+            
+        # Format the salary to look professional (e.g. 280000 -> Rs. 280,000)
+        if 'salary' in df.columns:
+            def format_salary(val):
+                try:
+                    return f"Rs. {int(float(val)):,}"
+                except:
+                    return str(val)
+            df['salary'] = df['salary'].apply(format_salary)
+            
+        return df
+    except Exception as e:
+        st.error(f"Could not load dataset.csv: {e}")
+        return pd.DataFrame()
 
 # ──────────────────────────────────────────────────────────────
 #  3. NLP ENGINE (TF-IDF + Cosine Similarity)
@@ -151,7 +142,7 @@ df = load_student_data()
 
 with st.sidebar:
     st.image("Aror Logo.jpg", use_container_width=True)
-    st.markdown("<h2 style='color:#065f46; font-size: 22px; text-align: center;'> Job Reccomandation System</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#065f46; font-size: 22px; text-align: center;'>🎓 Job Reccomandation System</h2>", unsafe_allow_html=True)
     page = st.radio("Navigation", ["🏠 Home", "🔍 Find Jobs", "📈 Market Analysis"])
     st.markdown("---")
     st.write("**Project Type:**")
@@ -193,7 +184,8 @@ elif page == "🔍 Find Jobs":
         st.success("✓ Resume Processed Successfully!")
         
     skills_in = st.text_area("Your Skills / Resume Content", value=extracted_text, placeholder="Enter your Skills (e.g. Python, SQL, React, Machine Learning) or upload a CV above.", height=150)
-    loc_filter = st.selectbox("Filter by City", ["All Cities", "Karachi", "Lahore", "Islamabad", "Sukkur"])
+    cities = ["All Cities"] + sorted(df['location'].dropna().unique().tolist())
+    loc_filter = st.selectbox("Filter by City", cities)
     
     if st.button("Analyze & Match"):
         results = run_match_engine(skills_in, df)
@@ -229,7 +221,7 @@ elif page == "🔍 Find Jobs":
                         </div>
                         <div style="margin-top:15px; border-top: 1px solid #f3f4f6; padding-top:10px;">
                             <span style="font-size:0.85rem; font-weight:bold; color:#065f46;">Salary Range: {row['salary']}</span>
-                            <div class="skill-missing"> Missing Skills: {row['missing_skills']}</div>
+                            <div class="skill-missing">⚠️ Missing Skills: {row['missing_skills']}</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -257,7 +249,7 @@ elif page == "📈 Market Analysis":
         fig2 = px.pie(df_chart, names='location', title="Opportunity Distribution by City", hole=0.4)
         st.plotly_chart(fig2, use_container_width=True)
         
-    st.info(" **Market Insights:** The analytics above reflect the current demand and compensation metrics for fresh graduates and entry-level professionals in Pakistan's tech sector.")
+    st.info("**Market Insights:** The analytics above reflect the current demand and compensation metrics for fresh graduates and entry-level professionals in Pakistan's tech sector.")
 
 st.markdown("---")
 st.caption("© 2026 | Aror University Sukkur | Department of Artificial Intelligence")
