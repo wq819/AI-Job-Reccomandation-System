@@ -162,7 +162,9 @@ elif page == "🔍 Find Jobs":
                     <div class="job-card">
                         <div style="display:flex; justify-content:space-between; align-items:start;">
                             <div style="display:flex; gap:15px;">
-                                <img src="{row['img']}" width="100" height="100" style="border-radius:8px; object-fit:cover; flex-shrink: 0;">
+                                <div style="width: 80px; height: 80px; border-radius: 12px; background: linear-gradient(135deg, #065f46, #059669); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; flex-shrink: 0; box-shadow: 0 4px 10px rgba(6, 95, 70, 0.2);">
+                                    {row['company'][0]}
+                                </div>
                                 <div>
                                     <h3 style="margin:0;">{row['title']}</h3>
                                     <p style="margin:0; color:#64748b; font-weight:600;">{row['company']} • {row['location']}</p>
