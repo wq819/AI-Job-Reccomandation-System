@@ -44,7 +44,7 @@ st.markdown("""
 #  2. DATASET (Aligned with Final Semester IT/AI Roles)
 # ──────────────────────────────────────────────────────────────
 @st.cache_data
-def load_student_data()
+def load_student_data():
     data = [
         {
             "id": 1, "title": "AI Research Engineer", "company": "Systems Ltd", 
