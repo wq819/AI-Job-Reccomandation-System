@@ -151,7 +151,7 @@ df = load_student_data()
 
 with st.sidebar:
     st.image("Aror Logo.jpg", use_container_width=True)
-    st.markdown("<h2 style='color:#065f46; font-size: 22px; text-align: center;'>🎓 Job Reccomandation System</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#065f46; font-size: 22px; text-align: center;'> Job Reccomandation System</h2>", unsafe_allow_html=True)
     page = st.radio("Navigation", ["🏠 Home", "🔍 Find Jobs", "📈 Market Analysis"])
     st.markdown("---")
     st.write("**Project Type:**")
