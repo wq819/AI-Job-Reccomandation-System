@@ -176,7 +176,7 @@ if page == "🏠 Home":
         requirements. By using **TF-IDF Vectorization** and **Cosine Similarity**, we analyze the semantic meaning 
         of your skills to find the most relevant jobs and opportunities in Pakistan.
         """)
-        st.success("🎯 Goal: Improve job search accuracy via AI and Content-Based Filtering.")
+        st.success(" Goal: Improve job search accuracy via AI and Content-Based Filtering.")
     with col2:
         st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
 
@@ -229,7 +229,7 @@ elif page == "🔍 Find Jobs":
                         </div>
                         <div style="margin-top:15px; border-top: 1px solid #f3f4f6; padding-top:10px;">
                             <span style="font-size:0.85rem; font-weight:bold; color:#065f46;">Salary Range: {row['salary']}</span>
-                            <div class="skill-missing">⚠️ Missing Skills: {row['missing_skills']}</div>
+                            <div class="skill-missing"> Missing Skills: {row['missing_skills']}</div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -257,7 +257,7 @@ elif page == "📈 Market Analysis":
         fig2 = px.pie(df_chart, names='location', title="Opportunity Distribution by City", hole=0.4)
         st.plotly_chart(fig2, use_container_width=True)
         
-    st.info("💡 **Market Insights:** The analytics above reflect the current demand and compensation metrics for fresh graduates and entry-level professionals in Pakistan's tech sector.")
+    st.info(" **Market Insights:** The analytics above reflect the current demand and compensation metrics for fresh graduates and entry-level professionals in Pakistan's tech sector.")
 
 st.markdown("---")
 st.caption("© 2026 | Aror University Sukkur | Department of Artificial Intelligence")
