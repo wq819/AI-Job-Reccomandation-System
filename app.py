@@ -106,6 +106,7 @@ def run_match_engine(user_skills, df):
 df = load_student_data()
 
 with st.sidebar:
+    st.image("Aror Logo.jpg", use_container_width=True)
     st.markdown("<h2 style='color:#065f46;'>🎓 TalentMatch AI</h2>", unsafe_allow_html=True)
     page = st.radio("Navigation", ["🏠 Home", "🔍 find the jobs ", "📄 Project Proposal"])
     st.markdown("---")
