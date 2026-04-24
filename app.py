@@ -107,10 +107,9 @@ df = load_student_data()
 
 with st.sidebar:
     st.markdown("<h2 style='color:#065f46;'>🎓 TalentMatch AI</h2>", unsafe_allow_html=True)
-    page = st.radio("Navigation", ["🏠 Home", "🔍 Find My Internship", "📄 Project Proposal"])
+    page = st.radio("Navigation", ["🏠 Home", "🔍 find the jobs ", "📄 Project Proposal"])
     st.markdown("---")
-    st.write("**Authors:**")
-    st.caption("Waqaas Hussain (291)\nHira Abdul Hafeez (314)")
+    st.write("**Final Project **")
     st.write("**Institution:**")
     st.caption("Aror University Sukkur")
 
@@ -136,7 +135,7 @@ if page == "🏠 Home":
         st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
 
 # --- SEARCH ENGINE ---
-elif page == "🔍 Find My Internship":
+elif page == "🔍 find the jobs ":
     st.header("Intelligent Matching Engine")
     
     skills_in = st.text_input("Enter your Skills (e.g. Python, SQL, React, Machine Learning)")
@@ -201,8 +200,7 @@ elif page == "📄 Project Proposal":
     with tab3:
         st.markdown("""
         **Included:** Recommender system, Streamlit GUI, Dataset analysis.  
-        **Not Included:** Mobile App, Real-time API, Deep Learning.
-        """)
+       """)
 
 st.markdown("---")
 st.caption("© 2026 | Aror University Sukkur | Department of Artificial Intelligence")
