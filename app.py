@@ -1,10 +1,10 @@
 # ============================================================
-#   Job Recommendation System
+#   AI-Powered Job Recommendation System
 #   Institution : Aror University Sukkur
-#   Students    : Waqaas Hussain (SAP-5000000291)
-#                 Hira Abdul Hafeez (SAP-5000000314)
+#   Students    : Waqaas Hussain
+#                 Hira Abdul Hafeez
 #   Instructor  : Sir Abdul Haseeb (BS AI - Semester 4)
-#   Core Logic  : TF-IDF Vector Space Modeling & Cosine Similarity
+
 # ============================================================
 
 import streamlit as st
@@ -131,7 +131,7 @@ def extract_text_from_pdf(pdf_file) -> str:
 # ──────────────────────────────────────────────────────────────
 #  GUI SETUP & CUSTOM CSS
 # ──────────────────────────────────────────────────────────────
-st.set_page_config(page_title="TalentMatch AI™ | Enterprise Edition", layout="wide", page_icon="👔")
+st.set_page_config(page_title=" ", layout="wide", page_icon="👔")
 
 # Premium Enterprise CSS Styling
 st.markdown("""
@@ -258,12 +258,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-#  MAIN APPLICATION FLOW
 # ──────────────────────────────────────────────────────────────
 engine = JobRecommendationEngine()
 df_main = load_dataset()
 
-# Custom function to load image as base64 (to center it nicely in sidebar)
 import base64
 def get_image_base64(path):
     import os
@@ -371,42 +369,66 @@ if trigger and u_input and not df_main.empty:
                     """, unsafe_allow_html=True)
     
         with vis_tab:
-            st.markdown("<h3 style='margin-bottom: 20px; font-weight: 600;'>Market Insights & Analytics</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-bottom: 20px; font-weight: 600;'>AI Market Insights & Analytics Dashboard</h3>", unsafe_allow_html=True)
             cl, cr = st.columns(2)
             
-            salary_data = df_main.groupby('location', as_index=False)['salary'].mean()
+            salary_data = df_main.groupby('location', as_index=False)['salary'].mean().sort_values(by='salary', ascending=True)
             job_counts = df_main['location'].value_counts().reset_index()
             job_counts.columns = ['location', 'count']
     
             with cl:
-                fig = px.bar(salary_data, x='location', y='salary', 
-                             title="Average Compensation by Region",
-                             color='salary', color_continuous_scale='Viridis',
-                             labels={'location': 'Region', 'salary': 'Avg Salary (PKR)'})
+                fig = px.bar(salary_data, x='salary', y='location', orientation='h',
+                             title="Average Compensation by Region (PKR)",
+                             color='salary', color_continuous_scale='Plasma',
+                             text='salary',
+                             labels={'location': 'Region', 'salary': 'Avg Salary'})
+                fig.update_traces(texttemplate='%{text:,.0f}', textposition='outside', marker_line_color='rgb(8,48,107)', marker_line_width=1.5, opacity=0.8)
                 fig.update_layout(
                     plot_bgcolor='rgba(0,0,0,0)', 
                     paper_bgcolor='rgba(0,0,0,0)', 
                     font_color='#f8fafc',
                     title_font=dict(size=18, family="Inter", color="#f8fafc"),
-                    margin=dict(l=20, r=20, t=50, b=20)
+                    margin=dict(l=20, r=40, t=60, b=20),
+                    xaxis_title="",
+                    yaxis_title=""
                 )
-                fig.update_xaxes(showgrid=False, linecolor='rgba(255,255,255,0.1)')
-                fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', linecolor='rgba(255,255,255,0.1)')
+                fig.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', showticklabels=False)
+                fig.update_yaxes(showgrid=False, linecolor='rgba(255,255,255,0.1)')
                 st.plotly_chart(fig, use_container_width=True)
                 
             with cr:
                 fig2 = px.pie(job_counts, names='location', values='count', 
                               title="Opportunity Distribution",
-                              color_discrete_sequence=px.colors.sequential.Teal)
-                fig2.update_traces(hole=.4, hoverinfo="label+percent+name")
+                              color='location',
+                              color_discrete_sequence=px.colors.qualitative.Pastel)
+                fig2.update_traces(hole=.6, hoverinfo="label+percent+name", textinfo='percent+label', textfont_size=14, marker=dict(line=dict(color='#0f172a', width=2)))
                 fig2.update_layout(
                     plot_bgcolor='rgba(0,0,0,0)', 
                     paper_bgcolor='rgba(0,0,0,0)', 
                     font_color='#f8fafc',
                     title_font=dict(size=18, family="Inter", color="#f8fafc"),
-                    margin=dict(l=20, r=20, t=50, b=20)
+                    margin=dict(l=20, r=20, t=60, b=20),
+                    showlegend=False,
+                    annotations=[dict(text='Hubs', x=0.5, y=0.5, font_size=20, showarrow=False, font_color='#60a5fa')]
                 )
                 st.plotly_chart(fig2, use_container_width=True)
+
+            # Adding an additional Visualization for Salary Distribution to make it look advanced
+            st.markdown("<br>", unsafe_allow_html=True)
+            fig3 = px.histogram(df_main, x="salary", nbins=20, title="Market Salary Distribution",
+                                marginal="box", opacity=0.7, color_discrete_sequence=['#3b82f6'])
+            fig3.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)', 
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    font_color='#f8fafc',
+                    title_font=dict(size=18, family="Inter", color="#f8fafc"),
+                    margin=dict(l=20, r=20, t=60, b=20),
+                    xaxis_title="Salary (PKR)",
+                    yaxis_title="Count of Opportunities"
+                )
+            fig3.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)')
+            fig3.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)')
+            st.plotly_chart(fig3, use_container_width=True)
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 with st.expander("⚙️ System Architecture & Methodology", expanded=False):
@@ -422,5 +444,5 @@ with st.expander("⚙️ System Architecture & Methodology", expanded=False):
     """)
     
 st.markdown("<div style='text-align: center; margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; color: #64748b; font-size: 0.85rem;'>", unsafe_allow_html=True)
-st.markdown("© 2026 TalentMatch AI. All rights reserved. | Aror University Sukkur | Final Project Submission", unsafe_allow_html=True)
+st.markdown("Final Project ", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
