@@ -14,6 +14,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import plotly.express as px
 import re
+import pdfplumber
 
 # ──────────────────────────────────────────────────────────────
 #  1. PAGE CONFIG & BRANDING
@@ -101,6 +102,18 @@ def run_match_engine(user_skills, df):
     df['missing_skills'] = df['skills'].apply(check_gap)
     return df.sort_values('match_percent', ascending=False)
 
+def extract_text_from_pdf(pdf_file) -> str:
+    extracted_text = ""
+    try:
+        with pdfplumber.open(pdf_file) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text + " "
+    except Exception as e:
+        st.error("Failed to parse the PDF document.")
+    return extracted_text
+
 # ──────────────────────────────────────────────────────────────
 #  4. SIDEBAR & NAVIGATION
 # ──────────────────────────────────────────────────────────────
@@ -135,13 +148,21 @@ if page == "🏠 Home":
         """)
         st.success("🎯 Goal: Improve job search accuracy via AI and Content-Based Filtering.")
     with col2:
-        st.image("Aror Logo.jpg", use_container_width=True)
+        st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
 
 # --- SEARCH ENGINE ---
 elif page == "🔍 Find Jobs":
     st.header("Intelligent Matching Engine")
     
-    skills_in = st.text_input("Enter your Skills (e.g. Python, SQL, React, Machine Learning)")
+    st.markdown("**Upload your CV (PDF)** to automatically extract your background, or type your skills manually.")
+    cv_pdf = st.file_uploader("Upload Resume", type=["pdf"])
+    
+    extracted_text = ""
+    if cv_pdf is not None:
+        extracted_text = extract_text_from_pdf(cv_pdf)
+        st.success("✓ Resume Processed Successfully!")
+        
+    skills_in = st.text_area("Your Skills / Resume Content", value=extracted_text, placeholder="Enter your Skills (e.g. Python, SQL, React, Machine Learning) or upload a CV above.", height=150)
     loc_filter = st.selectbox("Filter by City", ["All Cities", "Karachi", "Lahore", "Islamabad", "Sukkur"])
     
     if st.button("Analyze & Match"):
