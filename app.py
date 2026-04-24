@@ -146,7 +146,7 @@ if page == "🏠 Home":
         requirements. By using **TF-IDF Vectorization** and **Cosine Similarity**, we analyze the semantic meaning 
         of your skills to find the most relevant jobs and opportunities in Pakistan.
         """)
-        st.success("🎯 Goal: Improve job search accuracy via AI and Content-Based Filtering.")
+        st.success("Goal: Improve job search accuracy via AI and Content-Based Filtering.")
     with col2:
         st.image("https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=400", use_container_width=True)
 
