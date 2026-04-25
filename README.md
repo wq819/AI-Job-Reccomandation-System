@@ -26,6 +26,7 @@ streamlit run app.py
 3. Click **New App** → Select your GitHub repo
 4. Set main file as **app.py**
 5. Click **Deploy** ✅ — Live in 2 minutes!
+https://ai-job-reccomandation-system-zmrgqeqzvb4mbzztrgvcza.streamlit.app/
 
 ## 📁 File Structure
 ```
