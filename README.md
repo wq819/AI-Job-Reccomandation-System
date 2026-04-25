@@ -1,5 +1,5 @@
 # AI-Based Job Recommendation System
-**Prepared by:** Waqaas Hussain | **Subject:** Programming for AI
+**Subject:** Programming for AI
 
 ## 📌 About
 AI-powered job recommendation system using TF-IDF Vectorization and Cosine Similarity.
