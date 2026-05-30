@@ -1,7 +1,7 @@
 # ============================================================
 #   JOB RECCOMANDATION SYSTEM
 #   Institution : Aror University Sukkur
-#   Students    : Waqaas Hussain & Hira Abdul Hafeez
+#   Students    : Waqaas Hussain 
 #   Supervisor  : Sir Abdul Haseeb 
 #   Project     : Final Semester Project (BS Artificial Intelligence)
 #   Algorithm   : TF-IDF Vectorization + Cosine Similarity
@@ -146,7 +146,7 @@ with st.sidebar:
     page = st.radio("Navigation", ["🏠 Home", "🔍 Find Jobs", "📈 Market Analysis"])
     st.markdown("---")
     st.write("**Project Type:**")
-    st.caption("Final Semester Project")
+    st.caption("4th Semester Project")
     st.write("**Institution:**")
     st.caption("Aror University Sukkur")
 
